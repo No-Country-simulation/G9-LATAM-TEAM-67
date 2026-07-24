@@ -22,8 +22,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
-        return  new BCryptPasswordEncoder();
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -31,6 +31,10 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+                // Permitir que H2 se muestre dentro de un frame.
+                .headers(headers ->
+                        headers.frameOptions(frame -> frame.sameOrigin())
+                )
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -39,6 +43,14 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                             //Documentación de  swagger en mi proyecto: http://localhost:8080/swagger-ui/index.html
                             .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
+                            .requestMatchers("/h2-console/**").permitAll()
+                            // ===== PERMISOS POR ROLES =====
+                            .requestMatchers("/test/admin/**")
+                            .hasRole("ADMIN")
+                            .requestMatchers("/users/**")
+                            .hasRole("ADMIN")
+                            .requestMatchers("/test/user/**")
+                            .hasAnyRole("USER", "ADMIN")
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(

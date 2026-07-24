@@ -10,7 +10,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
 
     @GetMapping
-    public String test(){
+    public String test() {
         return "Acceso permitido";
+    }
+
+    @GetMapping("/user")
+    public String user() {
+        return "Hola USER";
+    }
+
+    @GetMapping("/admin")
+    public String admin() {
+        return "Hola ADMIN";
     }
 }

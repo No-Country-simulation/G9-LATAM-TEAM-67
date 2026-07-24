@@ -1,4 +1,4 @@
-package com.g9_latam_team_67.backend.dto;
+package com.g9_latam_team_67.backend.dto.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

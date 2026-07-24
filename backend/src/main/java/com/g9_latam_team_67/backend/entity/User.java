@@ -1,6 +1,7 @@
 package com.g9_latam_team_67.backend.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class User {
     @Column(nullable = false, length = 20)
     private Role role;
 
-    @Column(nullable = false)
+    @Column(name = "active")
     private Boolean active;
 
     @Column(name = "created_at", nullable = false)
@@ -38,4 +39,11 @@ public class User {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+
+    public User(@NotBlank(message = "El nombre es obligatorio") String name, String email, String password) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
 }
