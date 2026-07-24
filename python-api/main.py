@@ -59,7 +59,7 @@ async def clasificar_texto(payload: ContenidoInput):
         categoria_predicha = model_pipeline.predict([texto_a_procesar])[0]
         
         probabilidades = model_pipeline.predict_proba([texto_a_procesar])[0]
-        if max(probabilidades) < 0.20:
+        if max(probabilidades) < 0.50:
             logger.warning(f"Inferencia débil ({max(probabilidades):.2f}). Categorizado como 'No clasificado'.")
             return ClasificacionOutput(categoria="No clasificado", probabilidad=max(probabilidades))
 
