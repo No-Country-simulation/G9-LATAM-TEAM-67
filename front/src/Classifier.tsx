@@ -245,6 +245,9 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
   }
   const { username } = useUser()
 
+   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+   const isValid = wordCount >= 10 && wordCount <= 200
+
 
   const catConfig = result ? CATEGORY_CONFIG[result.category] : null
   const jsonStr = result ? JSON.stringify(result, null, 2) : ''
@@ -354,18 +357,11 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
               onFocus={e => { e.target.style.borderColor = 'var(--ring)'; e.target.style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--ring) 15%, transparent)' }}
               onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none' }}
             />
-            {(() => {
-              const wordCount = content.split(/\s+/).filter(Boolean).length
-              const isValid = wordCount >= 10 && wordCount <= 200
-              
-              return (
-                <p className="text-xs" style={{ color: isValid ? 'var(--muted-foreground)' : '#dc2626' }}>
-                  {wordCount} / 200 palabras · Mínimo: 10 palabras
-                </p>
-              )
-            })()}
+            <p className="text-xs" style={{ color: isValid ? 'var(--muted-foreground)' : '#dc2626' }}>
+              {wordCount} / 200 palabras · Mínimo: 10 palabras
+            </p>
           </div>
-          <button onClick={handleAnalyze} disabled={loading || !content.trim()}
+          <button onClick={handleAnalyze} disabled={loading || !isValid}
             className="flex items-center justify-center gap-2 w-full sm:w-auto sm:px-8 h-11 rounded-xl font-medium text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               background: loading || !content.trim() ? 'var(--muted)' : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
