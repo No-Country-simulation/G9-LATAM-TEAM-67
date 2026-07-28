@@ -14,12 +14,11 @@ app = FastAPI(
 )
 
 class ContenidoInput(BaseModel):
-    titulo: str = Field(..., description="Título del contenido técnico")
     texto: str = Field(..., description="Cuerpo o descripción del contenido")
 
 class ClasificacionOutput(BaseModel):
-    categoria: str = Field(..., description="Categoría asignada al contenido")
-    probabilidad: float = Field(..., description="Confianza de la predicción (0 a 1)")
+    category: str = Field(..., description="Categoría asignada al contenido")
+    probability: float = Field(..., description="Confianza de la predicción (0 a 1)")
 
 model_pipeline = None
 
@@ -27,7 +26,7 @@ model_pipeline = None
 def load_model():
     """Carga el modelo serializado en memoria RAM al arrancar el servidor."""
     global model_pipeline
-    model_path = os.path.join("model", "modelo_clasificador.pkl")
+    model_path = os.path.join("model", "pipeline_clasificador.joblib")
     
     if not os.path.exists(model_path):
         logger.error(f"Falta el archivo esencial del modelo en: {model_path}")
@@ -54,17 +53,17 @@ async def clasificar_texto(payload: ContenidoInput):
         )
     
     try:
-        texto_a_procesar = f"{payload.titulo} {payload.texto}"
+        texto_a_procesar = f"{payload.texto}"
         
         categoria_predicha = model_pipeline.predict([texto_a_procesar])[0]
         
         probabilidades = model_pipeline.predict_proba([texto_a_procesar])[0]
         if max(probabilidades) < 0.50:
             logger.warning(f"Inferencia débil ({max(probabilidades):.2f}). Categorizado como 'No clasificado'.")
-            return ClasificacionOutput(categoria="No clasificado", probabilidad=max(probabilidades))
+            return ClasificacionOutput(category="No clasificado", probability=max(probabilidades))
 
         logger.info(f"Procesamiento exitoso. Categoría asignada: {categoria_predicha}")
-        return ClasificacionOutput(categoria=categoria_predicha, probabilidad=max(probabilidades))
+        return ClasificacionOutput(category=categoria_predicha, probability=max(probabilidades))
         
     except Exception as e:
         logger.error(f"Error interno durante la inferencia: {str(e)}")
