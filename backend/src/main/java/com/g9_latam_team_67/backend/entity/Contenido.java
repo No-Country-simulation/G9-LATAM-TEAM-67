@@ -7,10 +7,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -24,14 +26,15 @@ public class Contenido {
     @Column(nullable = false, length = 150)
     private String titulo;
 
-    @Column(nullable = false, length = 10000)
+    @Lob
+    @Column(nullable = false)
     private String texto;
 
     @Column(nullable = false, length = 100)
     private String categoria;
 
-    @Column(nullable = false)
-    private Double probabilidad;
+    @Column(nullable = false, precision = 5, scale = 4)
+    private BigDecimal probabilidad;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime fecha;
@@ -47,7 +50,7 @@ public class Contenido {
             String titulo,
             String texto,
             String categoria,
-            Double probabilidad,
+            BigDecimal probabilidad,
             User usuario
     ) {
         this.titulo = titulo;
@@ -80,7 +83,7 @@ public class Contenido {
         return categoria;
     }
 
-    public Double getProbabilidad() {
+    public BigDecimal getProbabilidad() {
         return probabilidad;
     }
 

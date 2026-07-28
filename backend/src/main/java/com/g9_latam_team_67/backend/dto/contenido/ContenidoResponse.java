@@ -1,5 +1,6 @@
 package com.g9_latam_team_67.backend.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record ContenidoResponse(
@@ -7,7 +8,7 @@ public record ContenidoResponse(
         String titulo,
         String texto,
         String categoria,
-        Double probabilidad,
+        BigDecimal probabilidad,
         LocalDateTime fecha
 ) {
 }

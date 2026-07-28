@@ -8,13 +8,14 @@ import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class ContenidoService {
 
     private static final String CATEGORIA_SIMULADA = "Backend";
-    private static final double PROBABILIDAD_SIMULADA = 0.90;
+    private static final BigDecimal PROBABILIDAD_SIMULADA = new BigDecimal("0.9000");
 
     private final ContenidoRepository contenidoRepository;
 
