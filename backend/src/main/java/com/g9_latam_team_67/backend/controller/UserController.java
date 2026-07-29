@@ -19,11 +19,6 @@ public class UserController {
 
     private final UserService userService;
 
-//    @GetMapping
-//    public String test() {
-//        return "Acceso permitido para creación de usuarios";
-//    }
-
     //Ver Users
     @GetMapping
     public ResponseEntity<List<UserResponse>> findAll() {
@@ -42,25 +37,19 @@ public class UserController {
     @PostMapping
     public ResponseEntity<UserResponse> create(
             @Valid @RequestBody CreateUserRequest request) {
-
         UserResponse response = userService.create(request);
-
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);
-
     }
-
 
     //     Actualizar User
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRequest request) {
-
         return ResponseEntity.ok(
                 userService.update(id, request)
         );
-
     }
 
     // Desactiva User
@@ -78,11 +67,8 @@ public class UserController {
     //Borrar User
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-
         userService.delete(id);
-
         return ResponseEntity.noContent().build();
-
     }
 
 }
