@@ -7,11 +7,14 @@ import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class ContenidoService {
+
     private static final String CATEGORIA_SIMULADA = "Backend";
 
     // CAMBIO: "double" -> "BigDecimal". El constructor de Contenido fue
@@ -66,5 +69,4 @@ public class ContenidoService {
                 contenido.getFecha()
         );
     }
-
 }
