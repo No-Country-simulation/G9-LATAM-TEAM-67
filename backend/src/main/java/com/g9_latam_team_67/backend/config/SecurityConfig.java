@@ -33,6 +33,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+                //! ===== NUEVO: Habilita CORS en Spring Security =====
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .headers(headers ->
                         headers.frameOptions(frame -> frame.sameOrigin())
