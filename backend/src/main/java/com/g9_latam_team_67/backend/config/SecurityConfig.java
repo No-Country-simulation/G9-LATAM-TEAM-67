@@ -51,8 +51,15 @@ public class SecurityConfig {
                             //Documentación de  swagger en mi proyecto: http://localhost:8080/swagger-ui/index.html
                             .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                             .requestMatchers("/h2-console/**").permitAll()
+                            .requestMatchers(HttpMethod.POST,"/api/contenido/clasificar")
+                            .permitAll()
                             // ===== PERMISOS POR ROLES =====
                             .requestMatchers("/users/**")
+                            .hasAnyRole("ADMIN", "USER")
+
+                            .requestMatchers("/api/contenido/**")
+                            .hasAnyRole("USER", "ADMIN")
+                            .requestMatchers("/test/admin/**")
                             .hasRole("ADMIN")
                             .requestMatchers("/api/contenido/**")
                             .hasAnyRole("USER", "ADMIN")

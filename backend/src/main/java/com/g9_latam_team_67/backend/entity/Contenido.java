@@ -2,13 +2,12 @@ package com.g9_latam_team_67.backend.entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal; // <-- NUEVO IMPORT: necesario para el nuevo tipo de "probabilidad"
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "contenido")
 public class Contenido {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -56,14 +55,12 @@ public class Contenido {
         this.probabilidad = probabilidad;
         this.usuario = usuario;
     }
-
     @PrePersist
-    void asignarFecha() {
-        if (fecha == null) {
+    void asignarFecha(){
+        if (fecha== null){
             fecha = LocalDateTime.now();
         }
     }
-
     public Long getId() {
         return id;
     }

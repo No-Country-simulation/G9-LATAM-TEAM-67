@@ -1,19 +1,22 @@
 package com.g9_latam_team_67.backend.service;
 
+import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
 import com.g9_latam_team_67.backend.entity.Contenido;
+import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
-import java.math.BigDecimal; // <-- NUEVO IMPORT: requerido por el nuevo tipo de "probabilidad"
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class ContenidoService {
-
     private static final String CATEGORIA_SIMULADA = "Backend";
 
     // CAMBIO: "double" -> "BigDecimal". El constructor de Contenido fue
@@ -28,7 +31,6 @@ public class ContenidoService {
     public ContenidoService(ContenidoRepository contenidoRepository) {
         this.contenidoRepository = contenidoRepository;
     }
-
     @Transactional
     public ContenidoResponse crearContenido(ContenidoRequest request) {
         Contenido contenido = new Contenido(
@@ -41,8 +43,7 @@ public class ContenidoService {
 
         return convertirRespuesta(contenidoRepository.save(contenido));
     }
-
-    @Transactional(readOnly = true)
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ContenidoResponse> obtenerTodos() {
         return contenidoRepository.findAll()
                 .stream()
@@ -50,7 +51,7 @@ public class ContenidoService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ContenidoResponse obtenerPorId(Long id) {
         return contenidoRepository.findById(id)
                 .map(this::convertirRespuesta)
@@ -70,4 +71,12 @@ public class ContenidoService {
                 contenido.getFecha()
         );
     }
+
+    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
+        Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
+        contenidoRepository.save(contenido);
+        ContenidoResponse contenidoGuardado =  new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
+        return contenidoGuardado;
+    }
+
 }

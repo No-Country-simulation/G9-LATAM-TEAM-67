@@ -4,8 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class ContenidoNoEncontradoException extends RuntimeException {
-
+public class ContenidoNoEncontradoException extends RuntimeException{
     public ContenidoNoEncontradoException(Long id) {
         super("No existe contenido con id " + id);
     }
