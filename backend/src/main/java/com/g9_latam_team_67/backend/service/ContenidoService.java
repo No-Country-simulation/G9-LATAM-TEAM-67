@@ -1,11 +1,14 @@
 package com.g9_latam_team_67.backend.service;
 
+import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
 import com.g9_latam_team_67.backend.entity.Contenido;
+import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -14,7 +17,6 @@ import java.util.List;
 
 @Service
 public class ContenidoService {
-
     private static final String CATEGORIA_SIMULADA = "Backend";
 
     // CAMBIO: "double" -> "BigDecimal". El constructor de Contenido fue
@@ -69,4 +71,12 @@ public class ContenidoService {
                 contenido.getFecha()
         );
     }
+
+    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
+        Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
+        contenidoRepository.save(contenido);
+        ContenidoResponse contenidoGuardado =  new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
+        return contenidoGuardado;
+    }
+
 }

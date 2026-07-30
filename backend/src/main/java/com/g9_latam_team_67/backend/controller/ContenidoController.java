@@ -1,12 +1,15 @@
 package com.g9_latam_team_67.backend.controller;
 
 import com.g9_latam_team_67.backend.dto.contenido.*;
+import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.service.ClasificacionService;
 import com.g9_latam_team_67.backend.service.ContenidoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -43,13 +46,19 @@ public class ContenidoController {
     }
 
     @PostMapping("/clasificar")
-    public ResponseEntity<ClasificacionApiResponse> clasificar(
-            @Valid @RequestBody ContenidoRequest contenidoRequest) {
-        //aqui trabajare con el @service de contenido
+    public ResponseEntity<ContenidoResponse> clasificar(
+            @Valid @RequestBody ContenidoRequest contenidoRequest,
+            @AuthenticationPrincipal User userActual,
+            UriComponentsBuilder uriComponentsBuilder) {
+        //aqui trabajare con el @service de clasificar
         String texto = contenidoRequest.titulo()+" "+contenidoRequest.texto();
         ClasificacionApiRequest apiRequest = new ClasificacionApiRequest(texto);
-        ClasificacionApiResponse respuesta = clasificacionService.enviarTexto(apiRequest);
-        return ResponseEntity.ok(respuesta);
+
+        ClasificacionApiResponse apiResponse = clasificacionService.enviarTexto(apiRequest);
+        ContenidoResponse respuesta = contenidoService.guardar(contenidoRequest, apiResponse, userActual);
+
+        var uri = uriComponentsBuilder.path("/{id}").buildAndExpand(respuesta.id()).toUri();
+        return ResponseEntity.created(uri).body(respuesta);
     }
 }
 
