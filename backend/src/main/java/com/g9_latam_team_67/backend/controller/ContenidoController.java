@@ -1,8 +1,6 @@
 package com.g9_latam_team_67.backend.controller;
 
-import com.g9_latam_team_67.backend.dto.contenido.ClasificacionResponse;
-import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
-import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
+import com.g9_latam_team_67.backend.dto.contenido.*;
 import com.g9_latam_team_67.backend.service.ClasificacionService;
 import com.g9_latam_team_67.backend.service.ContenidoService;
 import jakarta.validation.Valid;
@@ -13,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/api/contenido", "/api/contenidos"})
+@RequestMapping({"/api/contenido"})
 public class ContenidoController {
     private final ContenidoService contenidoService;
     private final ClasificacionService clasificacionService;
@@ -45,9 +43,13 @@ public class ContenidoController {
     }
 
     @PostMapping("/clasificar")
-    public ResponseEntity<ClasificacionResponse> clasificar(
+    public ResponseEntity<ClasificacionApiResponse> clasificar(
             @Valid @RequestBody ContenidoRequest contenidoRequest) {
-        return ResponseEntity.ok(clasificacionService.clasificar(contenidoRequest));
+        //aqui trabajare con el @service de contenido
+        String texto = contenidoRequest.titulo()+" "+contenidoRequest.texto();
+        ClasificacionApiRequest apiRequest = new ClasificacionApiRequest(texto);
+        ClasificacionApiResponse respuesta = clasificacionService.enviarTexto(apiRequest);
+        return ResponseEntity.ok(respuesta);
     }
 }
 
