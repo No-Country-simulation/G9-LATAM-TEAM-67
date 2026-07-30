@@ -5,19 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58ba26d4-0d74-4877-8710-b86e5af127ef" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/AppConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/ClasificacionApiRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/ClasificacionApiResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/ContenidoResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/ContenidoResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/entity/Contenido.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/entity/Contenido.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/exception/ContenidoNoEncontradoException.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/exception/ContenidoNoEncontradoException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/filter/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/filter/JwtAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ClasificacionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ClasificacionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +34,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "Merging respaldo",
+    "git-widget-placeholder": "backen/henry",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/mahe2/OneDrive/Escritorio/G9-LATAM-TEAM-67/front",
     "settings.editor.selected.configurable": "preferences.pluginManager"
