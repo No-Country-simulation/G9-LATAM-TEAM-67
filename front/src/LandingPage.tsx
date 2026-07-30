@@ -1,4 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+// ===== NUEVO: Servicio de autenticación =====
+import { login } from "./services/authService"
+import { register } from "./services/authService";
+
+import { useState, useEffect, useRef, UseEffect } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -289,25 +293,50 @@ function LoginModal({ onClose, onSwitchToRegister, onSuccess }: LoginModalProps)
   const [remember, setRemember] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // ===== NUEVO =====
+  const { setUser } = useUser()
 
   const validate = () => {
     const e: Record<string, string> = {}
     if (!email.trim()) e.email = 'El correo es requerido'
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Ingresa un correo válido'
     if (!password) e.password = 'La contraseña es requerida'
-    else if (password.length < 6) e.password = 'Mínimo 6 caracteres'
+    // CAMBIO cantidad de caracteres
+    else if (password.length < 3) e.password = 'Mínimo 3 caracteres'
     return e
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+// ===== CAMBIO: Login real contra Spring Boot =====
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length) { setErrors(errs); return }
+
+    // ===== MANTENER: Validaciones del formulario =====
+    const validation = validate()
+    if (Object.keys(validation).length) {
+        setErrors(validation)
+        return
+    }
+    setErrors({})
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setLoading(false)
-    onSuccess()
-  }
+
+    try {
+        const response = await login({
+            email,
+            password
+        })
+        // ===== NUEVO: Guardar el usuario en el contexto =====
+        setUser(response)
+       // ===== CAMBIO: Guardamos toda la sesión =====
+       localStorage.setItem("user", JSON.stringify(response))
+        onSuccess()
+    } catch (error) {        // ===== CAMBIO: Mostrar error dentro del formulario =====
+        setErrors({
+            general: "Correo o contraseña incorrectos."
+        })
+    } finally {
+        setLoading(false)
+    }
+}
 
   return (
     <Modal onClose={onClose}>
@@ -390,7 +419,6 @@ interface RegisterModalProps {
   onSuccess: () => void
 }
 function RegisterModal({ onClose, onSwitchToLogin, onSuccess }: RegisterModalProps) {
-  const { setUsername } = useUser() // ← AGREGA ESTA LÍNEA
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -407,28 +435,39 @@ function RegisterModal({ onClose, onSwitchToLogin, onSuccess }: RegisterModalPro
     if (!email.trim()) e.email = 'El correo es requerido'
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'Ingresa un correo válido'
     if (!password) e.password = 'La contraseña es requerida'
-    else if (password.length < 8) e.password = 'Mínimo 8 caracteres'
+    else if (password.length < 3) e.password = 'Mínimo 3register caracteres'
     if (password !== confirm) e.confirm = 'Las contraseñas no coinciden'
     if (!terms) e.terms = 'Debes aceptar los términos'
     return e
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const errs = validate()
-    if (Object.keys(errs).length) { setErrors(errs); return }
-    setLoading(true)
-    try {
-      // TODO: aquí después va la llamada real a la API/OCI para crear la cuenta
-      await new Promise(r => setTimeout(r, 1200))
-      setUsername(name.trim() || 'Usuario') // ← AGREGA ESTA LÍNEA (con fallback)
-    } catch (error) {
-      setUsername('Usuario') // ← fallback si algo falla al guardar en OCI/BD
-    } finally {
-      setLoading(false)
-      onSuccess()
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  const errs = validate()
+  if (Object.keys(errs).length) {
+    setErrors(errs)
+    return
   }
+  setLoading(true)
+
+  try {
+    await register({
+      name: name.trim(),
+      email: email.trim(),
+      password
+    })
+    onSuccess()
+
+  } catch (error) {
+    setErrors({
+      email: error instanceof Error
+        ? error.message
+        : "No fue posible crear la cuenta"
+    })
+  } finally {
+    setLoading(false)
+  }
+}
 
   const strength = password.length === 0 ? 0 : password.length < 6 ? 1 : password.length < 10 ? 2 : 3
 
@@ -845,7 +884,7 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
         <RegisterModal
           onClose={() => setModal(null)}
           onSwitchToLogin={() => setModal('login')}
-          onSuccess={handleSuccess}
+          onSuccess={() => setModal('login')}
         />
       )}
     </>

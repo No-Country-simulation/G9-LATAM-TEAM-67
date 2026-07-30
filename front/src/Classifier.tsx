@@ -243,7 +243,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-  const { username } = useUser()
+  const { user } = useUser()
 
    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
    const isValid = wordCount >= 10 && wordCount <= 200
@@ -314,9 +314,9 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
             Clasificación automática con ML
           </div>
            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
-              Bienvenido,{' '}
+              Bienvenido, {" "}
               <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {username}
+                {user.name.toUpperCase()}
               </span>
             </h1>
 
