@@ -8,9 +8,9 @@ import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -72,11 +72,17 @@ public class ContenidoService {
         );
     }
 
+    @Transactional
     public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
+        if (userActual == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Se requiere un usuario autenticado");
+        }
+        if (!Boolean.TRUE.equals(userActual.getActive())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario autenticado está inactivo");
+        }
+
         Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
-        contenidoRepository.save(contenido);
-        ContenidoResponse contenidoGuardado =  new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
-        return contenidoGuardado;
+        return convertirRespuesta(contenidoRepository.save(contenido));
     }
 
 }

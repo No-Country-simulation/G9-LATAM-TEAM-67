@@ -2,6 +2,7 @@ package com.g9_latam_team_67.backend.config;
 
 
 import com.g9_latam_team_67.backend.security.CustomAccessDeniedHandler;
+import com.g9_latam_team_67.backend.security.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -43,6 +45,7 @@ public class SecurityConfig {
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> {
@@ -50,15 +53,10 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                             //Documentación de  swagger en mi proyecto: http://localhost:8080/swagger-ui/index.html
                             .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                            .requestMatchers("/h2-console/**").permitAll()
-                            .requestMatchers(HttpMethod.POST,"/api/contenido/clasificar")
-                            .permitAll()
                             // ===== PERMISOS POR ROLES =====
                             .requestMatchers("/users/**")
                             .hasAnyRole("ADMIN", "USER")
 
-                            .requestMatchers("/api/contenido/**")
-                            .hasAnyRole("USER", "ADMIN")
                             .requestMatchers("/test/admin/**")
                             .hasRole("ADMIN")
                             .requestMatchers("/api/contenido/**")
