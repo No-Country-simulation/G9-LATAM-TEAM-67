@@ -1,16 +1,6 @@
 package com.g9_latam_team_67.backend.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,7 +8,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "contenido")
 public class Contenido {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,6 +22,11 @@ public class Contenido {
     @Column(nullable = false, length = 100)
     private String categoria;
 
+    // CAMBIO: antes era "Double probabilidad" con @Column(nullable = false).
+    // Hibernate mapea Double -> tipo FLOAT en Oracle por defecto, pero tu columna
+    // en la migración es NUMBER(5,4). Para que coincidan exactamente:
+    // 1) el tipo Java pasa a BigDecimal (mapea de forma nativa a NUMBER en Oracle)
+    // 2) se agregan precision=5 y scale=4 para que coincida con NUMBER(5,4)
     @Column(nullable = false, precision = 5, scale = 4)
     private BigDecimal probabilidad;
 
@@ -46,6 +40,8 @@ public class Contenido {
     protected Contenido() {
     }
 
+    // CAMBIO: el parámetro del constructor cambia de Double a BigDecimal
+    // para que coincida con el nuevo tipo del campo.
     public Contenido(
             String titulo,
             String texto,
@@ -59,14 +55,12 @@ public class Contenido {
         this.probabilidad = probabilidad;
         this.usuario = usuario;
     }
-
     @PrePersist
-    void asignarFecha() {
-        if (fecha == null) {
+    void asignarFecha(){
+        if (fecha== null){
             fecha = LocalDateTime.now();
         }
     }
-
     public Long getId() {
         return id;
     }
@@ -83,6 +77,7 @@ public class Contenido {
         return categoria;
     }
 
+    // CAMBIO: el getter ahora retorna BigDecimal en vez de Double.
     public BigDecimal getProbabilidad() {
         return probabilidad;
     }

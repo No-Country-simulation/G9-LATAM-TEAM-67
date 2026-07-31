@@ -24,6 +24,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserRepository userRepository;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        // Puedes agregar aquí todas las rutas públicas que no deban pasar por el filtro JWT
+        return path.startsWith("/clasificar");
+    }
+    @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
