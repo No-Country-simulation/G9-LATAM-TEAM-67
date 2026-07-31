@@ -1,3 +1,5 @@
+import { API_URL } from "../config/api"
+
 export interface ClassificationRequest {
   titulo: string
   texto: string
@@ -11,9 +13,6 @@ export interface ClassificationResponse {
   probabilidad: number
   fecha: string
 }
-
-const API_URL =
-  import.meta.env.VITE_API_URL ?? "http://localhost:8080"
 
 export class ContentServiceError extends Error {
   constructor(

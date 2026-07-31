@@ -1,27 +1,28 @@
 package com.g9_latam_team_67.backend.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class ClasificacionService {
 
-    private final ObjectMapper objectMapper;
     private final RestTemplate restTemplate;
+    private final String classifierApiUrl;
 
-    public ClasificacionService(ObjectMapper objectMapper, RestTemplate restTemplate) {
-        this.objectMapper = objectMapper;
+    public ClasificacionService(
+            RestTemplate restTemplate,
+            @Value("${classifier.api.url}") String classifierApiUrl
+    ) {
         this.restTemplate = restTemplate;
+        this.classifierApiUrl = classifierApiUrl;
     }
 
     //quitar
@@ -45,14 +46,11 @@ public class ClasificacionService {
             // 2. Unir las cabeceras y el objeto DTO en una sola entidad HTTP
             HttpEntity<ClasificacionApiRequest> requestEntity = new HttpEntity<> (apiRequest, headers);
 
-            // Definir la URL completa de tu API de Python (ej: http://localhost:8000/predict)
-            String urlPython = "http://150.136.252.164:8000/predict"; // Reemplaza con tu URL real
-
             System.out.println("Enviando con RestTemplate a Python...");
 
             // 3. Ejecutar el POST y mapear la respuesta automáticamente
             ClasificacionApiResponse respuesta = restTemplate.postForObject(
-                    urlPython,
+                    classifierApiUrl,
                     requestEntity,
                     ClasificacionApiResponse.class
             );
