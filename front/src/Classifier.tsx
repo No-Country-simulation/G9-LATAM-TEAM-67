@@ -201,6 +201,14 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
 
   const handleAnalyze = async () => {
     if (loading || !content.trim()) return
+
+    const token = user?.token
+    if (!token) {
+      setResult(null)
+      setError('Debes iniciar sesión para clasificar contenido.')
+      return
+    }
+
     setLoading(true)
     setResult(null)
     setError(null)
@@ -209,7 +217,7 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
       const data = await classifyContent({
         titulo: title,
         texto: content,
-      }, user?.token)
+      }, token)
       const probability = data.probabilidad <= 1
         ? data.probabilidad * 100
         : data.probabilidad
@@ -229,9 +237,15 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err) {
       if (err instanceof ContentServiceError) {
-        setError(`Error HTTP ${err.status}: ${err.message}`)
+        if (err.status === 401) {
+          setError('Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.')
+        } else if (err.status === 403) {
+          setError('No tienes autorización para clasificar contenido.')
+        } else {
+          setError(`Error HTTP ${err.status}: ${err.message}`)
+        }
       } else {
-        setError(err instanceof Error ? err.message : 'No fue posible conectar con la API.')
+        setError('No fue posible conectar con la API. Revisa tu conexión e inténtalo de nuevo.')
       }
     } finally {
       setLoading(false)
