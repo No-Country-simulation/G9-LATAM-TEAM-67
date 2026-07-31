@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
+import {
+  classifyContent,
+  ContentServiceError,
+  type ClassificationResponse,
+} from './services/contentService'
 
 type Category =
   | 'Backend'
@@ -9,7 +14,7 @@ type Category =
   | 'Bases de Datos'
 
 interface ClassificationResult {
-  category: Category
+  category: string
   confidence: number
   label_id: number
   model: string
@@ -17,6 +22,7 @@ interface ClassificationResult {
   tokens_analyzed: number
   subcategories: string[]
   timestamp: string
+  response?: ClassificationResponse
 }
 
 const CATEGORY_CONFIG: Record<Category, { pastelBg: string; dotColor: string; glow: string }> = {
@@ -189,32 +195,44 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
   const [copied, setCopied] = useState(false)
   const [resultKey, setResultKey] = useState(0)
   const resultRef = useRef<HTMLDivElement>(null)
+  const { user } = useUser()
 
- const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleAnalyze = async () => {
-    if (!content.trim()) return
+    if (loading || !content.trim()) return
     setLoading(true)
     setResult(null)
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:8080/contenido', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo: title, texto: content }),
+      const data = await classifyContent({
+        titulo: title,
+        texto: content,
+      }, user?.token)
+      const probability = data.probabilidad <= 1
+        ? data.probabilidad * 100
+        : data.probabilidad
+
+      setResult({
+        category: data.categoria,
+        confidence: Math.max(0, Math.min(100, probability)),
+        label_id: -1,
+        model: 'tech-classifier-v2.1',
+        processing_time_ms: 0,
+        tokens_analyzed: (data.titulo + ' ' + data.texto).trim().split(/\s+/).filter(Boolean).length,
+        subcategories: [],
+        timestamp: data.fecha,
+        response: data,
       })
-
-      if (!response.ok) {
-        throw new Error('El servidor respondió con un error')
-      }
-
-      const data = await response.json()
-      setResult(data)
       setResultKey(k => k + 1)
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err) {
-      setError('⚠️ Aún no hay modelo conectado. La API no está disponible en este momento.')
+      if (err instanceof ContentServiceError) {
+        setError(`Error HTTP ${err.status}: ${err.message}`)
+      } else {
+        setError(err instanceof Error ? err.message : 'No fue posible conectar con la API.')
+      }
     } finally {
       setLoading(false)
     }
@@ -243,14 +261,16 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-  const { user } = useUser()
-
    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
-   const isValid = wordCount >= 10 && wordCount <= 200
+   const isValid = Boolean(title.trim()) && wordCount >= 10 && wordCount <= 200
 
 
-  const catConfig = result ? CATEGORY_CONFIG[result.category] : null
-  const jsonStr = result ? JSON.stringify(result, null, 2) : ''
+  const catConfig = result
+    ? CATEGORY_CONFIG[result.category as Category] ?? CATEGORY_CONFIG.Backend
+    : null
+  const jsonStr = result
+    ? JSON.stringify(result.response ?? result, null, 2)
+    : ''
 
   return (
     <>
@@ -316,7 +336,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
               Bienvenido, {" "}
               <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {user.name.toUpperCase()}
+                {user?.name.toUpperCase() ?? 'INVITADO'}
               </span>
             </h1>
 
@@ -332,7 +352,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
           style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="space-y-1.5">
             <label className="text-sm font-medium" htmlFor="title">
-              Título <span style={{ color: 'var(--muted-foreground)', fontWeight: 400 }}>(opcional)</span>
+              Título <span style={{ color: 'var(--muted-foreground)', fontWeight: 400 }}>(requerido)</span>
             </label>
             <input id="title" type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Ej: Introducción a Kubernetes y contenedores"
@@ -397,12 +417,16 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>Subcategorías</p>
                     <div className="flex flex-wrap gap-2">
-                      {result.subcategories.map(s => (
+                      {result.subcategories.length > 0 ? result.subcategories.map(s => (
                         <span key={s} className="text-xs px-2.5 py-1 rounded-lg border"
                           style={{ borderColor: 'var(--border)', color: 'var(--secondary-foreground)', backgroundColor: 'var(--secondary)' }}>
                           {s}
                         </span>
-                      ))}
+                      )) : (
+                        <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                          Sin subcategorías informadas
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4 pt-2">
@@ -440,7 +464,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
                     <span className="w-3 h-3 rounded-full bg-green-500/80" />
                   </div>
                   <span className="text-xs" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
-                    POST /api/classify → 200 OK
+                    POST /api/contenido/clasificar → 201 Created
                   </span>
                 </div>
                 <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"
