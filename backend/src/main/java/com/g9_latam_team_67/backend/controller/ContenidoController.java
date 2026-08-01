@@ -60,5 +60,10 @@ public class ContenidoController {
         var uri = uriComponentsBuilder.path("/{id}").buildAndExpand(respuesta.id()).toUri();
         return ResponseEntity.created(uri).body(respuesta);
     }
+
+    @GetMapping("/categorias")
+    public ResponseEntity<Categoria> obtenerCategorias(){
+        return ResponseEntity.ok(contenidoService.obtenerCategorias());
+    }
 }
 
