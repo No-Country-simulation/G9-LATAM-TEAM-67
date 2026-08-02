@@ -12,4 +12,6 @@ public interface ContenidoRepository extends JpaRepository<Contenido, Long> {
 
     @Query("SELECT DISTINCT p.categoria FROM Contenido p")
     List<String> buscarCategorias();
+
+    List<Contenido> findByCategoriaAndUsuarioId(String categoria, Long id);
 }

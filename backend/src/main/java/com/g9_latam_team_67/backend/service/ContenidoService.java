@@ -86,4 +86,10 @@ public class ContenidoService {
         Categoria categoria = new Categoria(categorias);
         return categoria;
     }
+
+    public List<Contenido> buscarPorCategoria(String categoria, User user) {
+        List<Contenido> resultado = contenidoRepository.findByCategoriaAndUsuarioId(categoria, user.getId());
+        resultado.stream().forEach(System.out::println);
+        return resultado;
+    }
 }
