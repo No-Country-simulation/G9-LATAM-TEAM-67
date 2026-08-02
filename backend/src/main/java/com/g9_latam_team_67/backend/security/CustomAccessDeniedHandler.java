@@ -30,9 +30,11 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     ) throws IOException, ServletException {
 
         ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
                 HttpStatus.FORBIDDEN.value(),
+                "Acceso no autorizado",
                 "No tienes permisos para acceder a este recurso.",
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
         response.setStatus(HttpStatus.FORBIDDEN.value());

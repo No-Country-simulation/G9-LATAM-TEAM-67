@@ -2,17 +2,29 @@ package com.g9_latam_team_67.backend.service;
 
 import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
+import com.g9_latam_team_67.backend.exception.ClassifierTimeoutException;
+import com.g9_latam_team_67.backend.exception.ClassifierUnavailableException;
+import com.g9_latam_team_67.backend.exception.ClassifierUpstreamException;
+import com.g9_latam_team_67.backend.exception.InvalidClassifierResponseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 
 @Service
 public class ClasificacionService {
+
+    private static final BigDecimal MIN_PROBABILITY = BigDecimal.ZERO;
+    private static final BigDecimal MAX_PROBABILITY = BigDecimal.ONE;
 
     private final RestTemplate restTemplate;
     private final String classifierApiUrl;
@@ -25,50 +37,54 @@ public class ClasificacionService {
         this.classifierApiUrl = classifierApiUrl;
     }
 
-    //quitar
-    /*
-    public ClasificacionApiResponse clasificar(ContenidoRequest contenido) {
-        // Esta respuesta provisional será reemplazada por la integración con el modelo de Ciencia de Datos.
-        return new ClasificacionApiResponse(
-                "Backend",
-                0.95,
-                List.of("Java", "Spring Boot", "API REST")
-        );
-    }
-     */
-    //Consulta a la api de python
-    public ClasificacionApiResponse enviarTexto(ClasificacionApiRequest apiRequest){
-
-        try{
+    public ClasificacionApiResponse enviarTexto(ClasificacionApiRequest apiRequest) {
+        try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // 2. Unir las cabeceras y el objeto DTO en una sola entidad HTTP
             HttpEntity<ClasificacionApiRequest> requestEntity = new HttpEntity<> (apiRequest, headers);
 
-            System.out.println("Enviando con RestTemplate a Python...");
-
-            // 3. Ejecutar el POST y mapear la respuesta automáticamente
-            ClasificacionApiResponse respuesta = restTemplate.postForObject(
+            ClasificacionApiResponse response = restTemplate.postForObject(
                     classifierApiUrl,
                     requestEntity,
                     ClasificacionApiResponse.class
             );
 
-            return respuesta;
-        } catch (HttpClientErrorException e) {
-            String error = e.getResponseBodyAsString();
-            System.out.println("Error 4xx de python ( "+e.getStatusCode()+" ) "+ error);
-            throw new RuntimeException(" Error de validacion por python "+error);
+            validateResponse(response);
+            return response;
+        } catch (ResourceAccessException ex) {
+            if (hasCause(ex, SocketTimeoutException.class)) {
+                throw new ClassifierTimeoutException();
+            }
+            if (hasCause(ex, ConnectException.class)) {
+                throw new ClassifierUnavailableException();
+            }
+            throw new ClassifierUnavailableException();
+        } catch (HttpStatusCodeException ex) {
+            throw new ClassifierUpstreamException();
+        } catch (RestClientException ex) {
+            throw new InvalidClassifierResponseException();
         }
-        catch (HttpServerErrorException e) {
-            String errorBody = e.getResponseBodyAsString();
-            System.err.println("Error 5xx en el servidor de Python (" + e.getStatusCode() + "): " + errorBody);
-            throw new RuntimeException("El servidor de Python falló internamente.");
+    }
+
+    private void validateResponse(ClasificacionApiResponse response) {
+        if (response == null
+                || response.category() == null
+                || response.category().isBlank()
+                || response.probability() == null
+                || response.probability().compareTo(MIN_PROBABILITY) < 0
+                || response.probability().compareTo(MAX_PROBABILITY) > 0) {
+            throw new InvalidClassifierResponseException();
         }
-        catch (Exception e) {
-            System.out.println("Error detallado al conectar con Python "+ e.getMessage());
-            throw new RuntimeException("Error al comunicarse con la api de python "+e.getMessage(), e);
+    }
+
+    private boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (causeType.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
         }
+        return false;
     }
 }

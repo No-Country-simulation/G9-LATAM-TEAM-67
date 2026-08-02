@@ -28,9 +28,11 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             AuthenticationException authenticationException
     ) throws IOException {
         ErrorResponse error = new ErrorResponse(
+                LocalDateTime.now(),
                 HttpStatus.UNAUTHORIZED.value(),
+                "Autenticación requerida",
                 "Se requiere un token válido para acceder a este recurso.",
-                LocalDateTime.now()
+                request.getRequestURI()
         );
 
         response.setStatus(HttpStatus.UNAUTHORIZED.value());

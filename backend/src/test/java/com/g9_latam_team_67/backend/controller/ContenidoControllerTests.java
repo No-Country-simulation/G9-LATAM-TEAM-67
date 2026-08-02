@@ -5,6 +5,8 @@ import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.entity.Contenido;
 import com.g9_latam_team_67.backend.entity.Role;
 import com.g9_latam_team_67.backend.entity.User;
+import com.g9_latam_team_67.backend.exception.ClassifierUnavailableException;
+import com.g9_latam_team_67.backend.exception.InvalidClassifierResponseException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import com.g9_latam_team_67.backend.repository.UserRepository;
 import com.g9_latam_team_67.backend.service.ClasificacionService;
@@ -182,6 +184,42 @@ class ContenidoControllerTests {
         Contenido guardado = contenidoRepository.findAll().get(0);
         assertThat(guardado.getUsuario()).isNotNull();
         assertThat(guardado.getUsuario().getEmail()).isEqualTo(usuarioAutenticado.getEmail());
+    }
+
+    @Test
+    void clasificadorNoDisponibleDevuelve503YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new ClassifierUnavailableException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.error").value("Servicio de clasificación no disponible"))
+                .andExpect(jsonPath("$.message").value("No fue posible conectar con el modelo de clasificación."))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
+    }
+
+    @Test
+    void respuestaInvalidaDevuelve502YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new InvalidClassifierResponseException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.status").value(502))
+                .andExpect(jsonPath("$.error").value("Respuesta inválida del servicio de clasificación"))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
     }
 
     @Test

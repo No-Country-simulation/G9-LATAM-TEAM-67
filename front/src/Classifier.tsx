@@ -241,6 +241,10 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
           setError('Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.')
         } else if (err.status === 403) {
           setError('No tienes autorización para clasificar contenido.')
+        } else if (err.status === 502) {
+          setError('El modelo devolvió una respuesta inválida. Inténtalo nuevamente más tarde.')
+        } else if (err.status === 503) {
+          setError('El servicio de clasificación no está disponible en este momento. Inténtalo nuevamente más tarde.')
         } else {
           setError(`Error HTTP ${err.status}: ${err.message}`)
         }
