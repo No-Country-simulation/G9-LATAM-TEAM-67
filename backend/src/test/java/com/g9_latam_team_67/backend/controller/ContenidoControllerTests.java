@@ -6,6 +6,7 @@ import com.g9_latam_team_67.backend.entity.Contenido;
 import com.g9_latam_team_67.backend.entity.Role;
 import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ClassifierUnavailableException;
+import com.g9_latam_team_67.backend.exception.ClassifierTimeoutException;
 import com.g9_latam_team_67.backend.exception.InvalidClassifierResponseException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import com.g9_latam_team_67.backend.repository.UserRepository;
@@ -84,13 +85,27 @@ class ContenidoControllerTests {
     }
 
     @Test
-    void entradaInvalidaDevuelveBadRequest() throws Exception {
+    void tituloVacioDevuelveBadRequest() throws Exception {
         mockMvc.perform(post("/api/contenido")
                         .header(HttpHeaders.AUTHORIZATION, bearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "titulo": "",
+                                  "texto": "Texto suficientemente largo para superar la validación."
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void textoDemasiadoCortoDevuelveBadRequest() throws Exception {
+        mockMvc.perform(post("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "titulo": "Título válido",
                                   "texto": "Corto"
                                 }
                                 """))
@@ -200,6 +215,23 @@ class ContenidoControllerTests {
                 .andExpect(jsonPath("$.status").value(503))
                 .andExpect(jsonPath("$.error").value("Servicio de clasificación no disponible"))
                 .andExpect(jsonPath("$.message").value("No fue posible conectar con el modelo de clasificación."))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
+    }
+
+    @Test
+    void timeoutDelClasificadorDevuelve503YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new ClassifierTimeoutException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.message").value("El modelo de clasificación no respondió a tiempo."))
                 .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
 
         assertThat(contenidoRepository.count()).isZero();
