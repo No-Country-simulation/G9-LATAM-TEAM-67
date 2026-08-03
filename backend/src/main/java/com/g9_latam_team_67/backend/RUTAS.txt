@@ -1,0 +1,36 @@
+---POST REGISTER: http://localhost:8080/auth/register
+  LO QUE ENVIA LARUTA EN BODY:
+    {
+        "name": "Henry",
+        "email": "henry@gmail.com",
+        "password": "123"
+    }
+
+ ---POST LOGIN: http://localhost:8080/auth/login  Te regresa usuario con token para agregar en las demás  rutas con header
+                                                    Auth o Authorization
+    BODY;
+    {
+        "email": "henry@gmail.com",
+        "password": "123"
+    }
+
+---GET TODOS LOS USUARIOS: http://localhost:8080/users
+    DEBES TENER EN CUENTA EL TOKEN E
+
+---GET USUARIO BY ID: http://localhost:8080/users/1  EL NÚMERO ES EL ID QUE QUIERAS VER
+
+---PUT PARA ACTUALIZAR USUARIO: http://localhost:8080/users/21 REEMPLAZA ID PARA ESCOGER USUARIO
+    BODY:
+    {
+      "password": "123"
+
+      //++ ACÁ PONES EL  O LOS CAMPOS QUE QUIERAS ACTUALIZAR EMAIL, NOMBRE, PASSWORD, Y EL USER CON ROLE DE ADMIN
+            PUEDE AGRGAR EL CAMPO ROLE(ADMIN o USER SOLO ESTOS DOS)
+
+    }
+
+---PATCH PARA ACTIVAR O DESACTIVAR USUARIOS (NO BORRA) :
+        http://localhost:8080/users/41/deactivate
+        http://localhost:8080/users/22/activate
+
+---DELETE DE USUARIO (ELIMINACIÓN TOTAL DE DB): http://localhost:8080/users/24
