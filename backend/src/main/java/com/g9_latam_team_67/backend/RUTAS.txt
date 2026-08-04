@@ -34,3 +34,9 @@
         http://localhost:8080/users/22/activate
 
 ---DELETE DE USUARIO (ELIMINACIÓN TOTAL DE DB): http://localhost:8080/users/24
+
+--Buscar las categorias disponibles
+-> GET http://localhost:8080/api/contenido/categorias
+
+--Buscar titulo/textos por categoria como parametro
+    -> GET http://localhost:8080/api/contenido/buscar?categoria=basesdedatos
