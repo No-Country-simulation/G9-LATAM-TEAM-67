@@ -5,6 +5,7 @@ import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
 import com.g9_latam_team_67.backend.entity.Contenido;
+import com.g9_latam_team_67.backend.entity.Role;
 import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
@@ -45,8 +46,13 @@ public class ContenidoService {
         return convertirRespuesta(contenidoRepository.save(contenido));
     }
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public List<ContenidoResponse> obtenerTodos() {
-        return contenidoRepository.findAll()
+    public List<ContenidoResponse> obtenerTodos(User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<Contenido> contenidos = esAdmin(userActual)
+                ? contenidoRepository.findAll()
+                : contenidoRepository.findAllByUsuario(userActual);
+
+        return contenidos
                 .stream()
                 .map(this::convertirRespuesta)
                 .toList();
@@ -86,15 +92,34 @@ public class ContenidoService {
         return convertirRespuesta(contenidoRepository.save(contenido));
     }
 
-    public Categoria obtenerCategorias() {
-        List<String> categorias = contenidoRepository.buscarCategorias();
-        Categoria categoria = new Categoria(categorias);
-        return categoria;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Categoria obtenerCategorias(User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<String> categorias = esAdmin(userActual)
+                ? contenidoRepository.buscarCategorias()
+                : contenidoRepository.buscarCategoriasPorUsuario(userActual);
+        return new Categoria(categorias);
     }
 
-    public List<Contenido> buscarPorCategoria(String categoria, User user) {
-        List<Contenido> resultado = contenidoRepository.findByCategoriaAndUsuarioId(categoria, user.getId());
-        resultado.stream().forEach(System.out::println);
-        return resultado;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<ContenidoResponse> buscarPorCategoria(String categoria, User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<Contenido> resultado = esAdmin(userActual)
+                ? contenidoRepository.findByCategoria(categoria)
+                : contenidoRepository.findByCategoriaAndUsuarioId(categoria, userActual.getId());
+
+        return resultado.stream()
+                .map(this::convertirRespuesta)
+                .toList();
+    }
+
+    private boolean esAdmin(User user) {
+        return user.getRole() == Role.ADMIN;
+    }
+
+    private void validarUsuarioAutenticado(User user) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Se requiere un usuario autenticado");
+        }
     }
 }
