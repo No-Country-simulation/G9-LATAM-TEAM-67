@@ -1,7 +1,7 @@
-# 📊 Clasificador Inteligente de Contenido Técnico
+#  Clasificador Inteligente de Contenido Técnico
 ### Ciencia de Datos | Hackathon Oracle Next Education (ONE) G9 – Alura & Oracle
 
-## 📖 Descripción
+##  Descripción
 
 Este repositorio contiene el desarrollo de la etapa de **Ciencia de Datos** del proyecto **Clasificador Inteligente de Contenido Técnico**, realizado para el Hackathon **Oracle Next Education (ONE) G9 – Alura & Oracle**.
 
@@ -11,7 +11,7 @@ El modelo desarrollado será consumido posteriormente por una **API REST**, form
 
 ---
 
-# 🎯 Objetivos
+#  Objetivos
 
 - Construir un dataset de contenido técnico con todo el equipo.
 - Analizar la calidad de los datos mediante EDA.
@@ -23,7 +23,7 @@ El modelo desarrollado será consumido posteriormente por una **API REST**, form
 
 ---
 
-# 🗂 Categorías del modelo
+#  Categorías del modelo
 
 El clasificador identifica automáticamente contenido perteneciente a las siguientes categorías:
 
@@ -35,7 +35,7 @@ El clasificador identifica automáticamente contenido perteneciente a las siguie
 
 ---
 
-# 🔄 Flujo de trabajo
+#  Flujo de trabajo
 
 ```text
 Carga del Dataset
@@ -102,7 +102,7 @@ Serialización (.joblib)
 
 ---
 
-# 📊 Análisis Exploratorio (EDA)
+#  Análisis Exploratorio (EDA)
 
 Durante esta etapa se realizaron las siguientes actividades:
 
@@ -115,7 +115,7 @@ Durante esta etapa se realizaron las siguientes actividades:
 
 ---
 
-# 🧹 Preprocesamiento del texto
+#  Preprocesamiento del texto
 
 Se aplicó un proceso de limpieza para mejorar la calidad del entrenamiento:
 
@@ -128,7 +128,7 @@ Se aplicó un proceso de limpieza para mejorar la calidad del entrenamiento:
 
 ---
 
-# 🔠 Vectorización
+#  Vectorización
 
 El texto fue convertido a variables numéricas utilizando la técnica:
 
@@ -138,7 +138,7 @@ Esta representación permite identificar la importancia relativa de cada palabra
 
 ---
 
-# 🤖 Modelos evaluados
+#  Modelos evaluados
 
 Se entrenaron y compararon tres algoritmos de clasificación:
 
@@ -150,7 +150,7 @@ Se entrenaron y compararon tres algoritmos de clasificación:
 
 ---
 
-# 📈 Comparación de modelos
+#  Comparación de modelos
 
 Los modelos fueron comparados utilizando **Validación Cruzada (Cross Validation)** con cinco particiones.
 
@@ -166,7 +166,7 @@ De acuerdo con los resultados obtenidos, **Multinomial Naive Bayes** fue selecci
 
 ---
 
-# 📋 Evaluación del modelo
+#  Evaluación del modelo
 
 El modelo seleccionado fue evaluado sobre el conjunto de prueba utilizando las siguientes métricas:
 
@@ -182,7 +182,7 @@ Los resultados mostraron un buen desempeño en todas las categorías, permitiend
 
 ---
 
-# 💾 Archivos generados
+#  Archivos generados
 
 Durante el proyecto se generaron los siguientes archivos:
 
@@ -196,7 +196,7 @@ Estos archivos fueron preparados para su almacenamiento en **Oracle Cloud Infras
 
 ---
 
-# 📁 Estructura del proyecto
+#  Estructura del proyecto
 
 ```text
 DataScience/
@@ -210,7 +210,7 @@ DataScience/
 
 ---
 
-# 🚀 Ejemplo de uso
+#  Ejemplo de uso
 
 ```python
 import joblib
@@ -234,7 +234,7 @@ print(prediccion)
 
 ---
 
-# ☁️ Integración con Oracle Cloud Infrastructure (OCI)
+#  Integración con Oracle Cloud Infrastructure (OCI)
 
 Como parte del proyecto, el modelo entrenado, el dataset y los archivos de configuración fueron preparados para almacenarse en un **Bucket de Oracle Cloud Infrastructure (Object Storage)**.
 
@@ -242,7 +242,7 @@ Esta integración permite que la API desarrollada por el equipo de Backend cargu
 
 ---
 
-# 👥 Equipo
+#  Equipo
 
 Proyecto desarrollado durante el **Hackathon Oracle Next Education (ONE) G9 – Alura & Oracle**.
 
