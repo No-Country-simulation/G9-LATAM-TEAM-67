@@ -5,6 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58ba26d4-0d74-4877-8710-b86e5af127ef" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/Categoria.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/RUTAS.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/RUTAS.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/CorsConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/resources/application.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,7 +41,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "backen/henry",
+    "git-widget-placeholder": "Merging respaldo",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/mahe2/OneDrive/Escritorio/G9-LATAM-TEAM-67/front",
     "settings.editor.selected.configurable": "preferences.pluginManager"

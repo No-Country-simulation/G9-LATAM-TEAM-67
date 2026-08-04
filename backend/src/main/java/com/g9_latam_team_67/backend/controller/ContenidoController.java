@@ -1,6 +1,7 @@
 package com.g9_latam_team_67.backend.controller;
 
 import com.g9_latam_team_67.backend.dto.contenido.*;
+import com.g9_latam_team_67.backend.entity.Contenido;
 import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.service.ClasificacionService;
 import com.g9_latam_team_67.backend.service.ContenidoService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.stream.Collector;
 
 @RestController
 @RequestMapping({"/api/contenido"})
@@ -60,5 +62,34 @@ public class ContenidoController {
         var uri = uriComponentsBuilder.path("/{id}").buildAndExpand(respuesta.id()).toUri();
         return ResponseEntity.created(uri).body(respuesta);
     }
+
+    @GetMapping("/categorias")
+    public ResponseEntity<Categoria> obtenerCategorias(){
+        return ResponseEntity.ok(contenidoService.obtenerCategorias());
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<ContenidoResponse>> buscarPorCategoria(
+            @RequestParam(required = false) String categoria,
+            @AuthenticationPrincipal User user){
+        if (categoria != null && !categoria.isEmpty()){
+            List<Contenido> resultado = contenidoService.buscarPorCategoria(categoria, user);
+
+            if (resultado.isEmpty()){
+                return ResponseEntity.notFound().build();
+            }else {
+                List<ContenidoResponse> resultadoList = resultado
+                        .stream()
+                        .map(r-> new ContenidoResponse(r.getId(), r.getTitulo(), r.getTexto(), r.getCategoria(), r.getProbabilidad(), r.getFecha()))
+                        .toList();
+
+                return ResponseEntity.ok(resultadoList);
+            }
+        }else {
+            return ResponseEntity.badRequest().build();
+        }
+
+    }
+
 }
 
