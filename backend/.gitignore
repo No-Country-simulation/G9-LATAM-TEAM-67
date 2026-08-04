@@ -34,3 +34,6 @@ build/
 
 ### Wallet
 wallet/
+.env
+.env.*
+!.env.example

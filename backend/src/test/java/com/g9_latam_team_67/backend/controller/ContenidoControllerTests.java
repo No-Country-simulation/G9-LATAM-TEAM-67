@@ -1,16 +1,35 @@
 package com.g9_latam_team_67.backend.controller;
 
+import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiRequest;
+import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
+import com.g9_latam_team_67.backend.entity.Contenido;
+import com.g9_latam_team_67.backend.entity.Role;
+import com.g9_latam_team_67.backend.entity.User;
+import com.g9_latam_team_67.backend.exception.ClassifierUnavailableException;
+import com.g9_latam_team_67.backend.exception.ClassifierTimeoutException;
+import com.g9_latam_team_67.backend.exception.InvalidClassifierResponseException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
+import com.g9_latam_team_67.backend.repository.UserRepository;
+import com.g9_latam_team_67.backend.service.ClasificacionService;
+import com.g9_latam_team_67.backend.service.TokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -18,28 +37,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class ContenidoControllerTests {
 
-    private final MockMvc mockMvc;
-    private final ContenidoRepository contenidoRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Autowired
-    ContenidoControllerTests(
-            MockMvc mockMvc,
-            ContenidoRepository contenidoRepository
-    ) {
-        this.mockMvc = mockMvc;
-        this.contenidoRepository = contenidoRepository;
-    }
+    private ContenidoRepository contenidoRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TokenService tokenService;
+
+    @MockitoBean
+    private ClasificacionService clasificacionService;
+
+    private User usuarioAutenticado;
+    private String tokenValido;
 
     @BeforeEach
-    void limpiarContenidos() {
+    void prepararPrueba() {
         contenidoRepository.deleteAll();
+        userRepository.deleteAll();
+
+        usuarioAutenticado = userRepository.save(nuevoUsuario("usuario@techmind.test"));
+        tokenValido = tokenService.generateToken(usuarioAutenticado);
+
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenReturn(new ClasificacionApiResponse("Backend", new BigDecimal("0.95")));
     }
 
     @Test
     void postExitoso() throws Exception {
         mockMvc.perform(post("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(contenidoValido()))
                 .andExpect(status().isCreated())
@@ -51,12 +85,27 @@ class ContenidoControllerTests {
     }
 
     @Test
-    void entradaInvalidaDevuelveBadRequest() throws Exception {
+    void tituloVacioDevuelveBadRequest() throws Exception {
         mockMvc.perform(post("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "titulo": "",
+                                  "texto": "Texto suficientemente largo para superar la validación."
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void textoDemasiadoCortoDevuelveBadRequest() throws Exception {
+        mockMvc.perform(post("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "titulo": "Título válido",
                                   "texto": "Corto"
                                 }
                                 """))
@@ -67,7 +116,8 @@ class ContenidoControllerTests {
     void getDevuelveLista() throws Exception {
         crearContenido();
 
-        mockMvc.perform(get("/api/contenido"))
+        mockMvc.perform(get("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].categoria").value("Backend"));
@@ -77,7 +127,8 @@ class ContenidoControllerTests {
     void getPorIdDevuelveContenido() throws Exception {
         long id = crearContenido();
 
-        mockMvc.perform(get("/api/contenido/{id}", id))
+        mockMvc.perform(get("/api/contenido/{id}", id)
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.titulo").value("Introducción a Spring Boot"));
@@ -85,21 +136,148 @@ class ContenidoControllerTests {
 
     @Test
     void getPorIdInexistenteDevuelveNotFound() throws Exception {
-        mockMvc.perform(get("/api/contenido/{id}", 999999))
+        mockMvc.perform(get("/api/contenido/{id}", 999999)
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    void clasificacionProvisionalExistenteSigueDisponible() throws Exception {
-        mockMvc.perform(post("/api/contenidos/clasificar")
+    void clasificacionSinJwtDevuelveUnauthorized() throws Exception {
+        mockMvc.perform(post("/api/contenido/clasificar")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(contenidoValido()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.categoria").value("Backend"));
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void clasificacionConJwtInvalidoDevuelveUnauthorized() throws Exception {
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer token-invalido")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void clasificacionConUsuarioInactivoDevuelveUnauthorized() throws Exception {
+        usuarioAutenticado.setActive(false);
+        userRepository.saveAndFlush(usuarioAutenticado);
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void clasificacionConUsuarioEliminadoDevuelveUnauthorized() throws Exception {
+        userRepository.delete(usuarioAutenticado);
+        userRepository.flush();
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void clasificacionConJwtValidoGuardaElUsuarioAutenticado() throws Exception {
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.titulo").value("Introducción a Spring Boot"))
+                .andExpect(jsonPath("$.categoria").value("Backend"))
+                .andExpect(jsonPath("$.probabilidad").value(0.95))
+                .andExpect(jsonPath("$.fecha").exists())
+                .andExpect(jsonPath("$.usuario").doesNotExist());
+
+        Contenido guardado = contenidoRepository.findAll().get(0);
+        assertThat(guardado.getUsuario()).isNotNull();
+        assertThat(guardado.getUsuario().getEmail()).isEqualTo(usuarioAutenticado.getEmail());
+    }
+
+    @Test
+    void clasificadorNoDisponibleDevuelve503YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new ClassifierUnavailableException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.error").value("Servicio de clasificación no disponible"))
+                .andExpect(jsonPath("$.message").value("No fue posible conectar con el modelo de clasificación."))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
+    }
+
+    @Test
+    void timeoutDelClasificadorDevuelve503YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new ClassifierTimeoutException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.status").value(503))
+                .andExpect(jsonPath("$.message").value("El modelo de clasificación no respondió a tiempo."))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
+    }
+
+    @Test
+    void respuestaInvalidaDevuelve502YNoGuardaContenido() throws Exception {
+        when(clasificacionService.enviarTexto(any(ClasificacionApiRequest.class)))
+                .thenThrow(new InvalidClassifierResponseException());
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.status").value(502))
+                .andExpect(jsonPath("$.error").value("Respuesta inválida del servicio de clasificación"))
+                .andExpect(jsonPath("$.path").value("/api/contenido/clasificar"));
+
+        assertThat(contenidoRepository.count()).isZero();
+    }
+
+    @Test
+    void usuarioIdEnLaSolicitudNoPuedeCambiarLaAsociacion() throws Exception {
+        User otroUsuario = userRepository.save(nuevoUsuario("otro@techmind.test"));
+
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "titulo": "Introducción a Spring Boot",
+                                  "texto": "Aprende a desarrollar APIs REST utilizando Java y Spring Boot.",
+                                  "usuarioId": %d
+                                }
+                                """.formatted(otroUsuario.getId())))
+                .andExpect(status().isCreated());
+
+        Contenido guardado = contenidoRepository.findAll().get(0);
+        assertThat(guardado.getUsuario().getId()).isEqualTo(usuarioAutenticado.getId());
+        assertThat(guardado.getUsuario().getId()).isNotEqualTo(otroUsuario.getId());
     }
 
     private long crearContenido() throws Exception {
-        String location = mockMvc.perform(post("/api/contenido")
+        String response = mockMvc.perform(post("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(contenidoValido()))
                 .andExpect(status().isCreated())
@@ -107,7 +285,24 @@ class ContenidoControllerTests {
                 .getResponse()
                 .getContentAsString();
 
-        return Long.parseLong(location.replaceAll(".*\"id\":(\\d+).*", "$1"));
+        return Long.parseLong(response.replaceAll(".*\\\"id\\\":(\\d+).*", "$1"));
+    }
+
+    private String bearerToken() {
+        return "Bearer " + tokenValido;
+    }
+
+    private User nuevoUsuario(String email) {
+        LocalDateTime ahora = LocalDateTime.now();
+        return User.builder()
+                .name("Usuario de prueba")
+                .email(email)
+                .password("password-cifrado")
+                .role(Role.USER)
+                .active(true)
+                .createdAt(ahora)
+                .updatedAt(ahora)
+                .build();
     }
 
     private String contenidoValido() {
