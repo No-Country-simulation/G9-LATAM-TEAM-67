@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
+import { useUser } from './UserContext'
 
 type Category =
   | 'Backend'
@@ -104,6 +104,12 @@ const IconLogout = () => (
   </svg>
 )
 
+const IconShieldAdmin = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+)
+
 const IconZap = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -179,9 +185,10 @@ interface ClassifierProps {
   dark: boolean
   onToggleDark: () => void
   onGoHome: () => void
+  onGoAdmin: () => void
 }
 
-export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierProps) {
+export default function Classifier({ dark, onToggleDark, onGoHome, onGoAdmin }: ClassifierProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
@@ -190,7 +197,7 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
   const [resultKey, setResultKey] = useState(0)
   const resultRef = useRef<HTMLDivElement>(null)
 
- const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleAnalyze = async () => {
     if (!content.trim()) return
@@ -220,22 +227,21 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
     }
   }
 
-const handleExample = (ex: typeof EXAMPLES[0]) => {
-  setTitle(ex.title)
-  setContent(ex.content)
-  setError(null)
-  setLoading(true)
-  setResult(null)
+  const handleExample = (ex: typeof EXAMPLES[0]) => {
+    setTitle(ex.title)
+    setContent(ex.content)
+    setError(null)
+    setLoading(true)
+    setResult(null)
 
-  // Simula el tiempo de respuesta de una API real
-  setTimeout(() => {
-    const mockResult = mockClassify(ex.title, ex.content)
-    setResult(mockResult)
-    setResultKey(k => k + 1)
-    setLoading(false)
-    setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-  }, 800)
-}
+    setTimeout(() => {
+      const mockResult = mockClassify(ex.title, ex.content)
+      setResult(mockResult)
+      setResultKey(k => k + 1)
+      setLoading(false)
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    }, 800)
+  }
 
   const handleCopy = () => {
     if (!result) return
@@ -243,11 +249,11 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
   const { user } = useUser()
 
-   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
-   const isValid = wordCount >= 10 && wordCount <= 200
-
+  const wordCount = content.trim().split(/\s+/).filter(Boolean).length
+  const isValid = wordCount >= 10 && wordCount <= 200
 
   const catConfig = result ? CATEGORY_CONFIG[result.category] : null
   const jsonStr = result ? JSON.stringify(result, null, 2) : ''
@@ -280,22 +286,40 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
             </div>
           </button>
           <div className="flex items-center gap-3">
+            {user?.role === 'ADMIN' && (
+              <button
+                onClick={onGoAdmin}
+                className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+                style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'color-mix(in srgb, var(--primary) 50%, transparent)'
+                  ;(e.currentTarget as HTMLElement).style.color = 'var(--primary)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+                  ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
+                }}
+              >
+                <IconShieldAdmin />
+                Gestión de usuarios
+              </button>
+            )}
             <button
-  onClick={onGoHome}
-  className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
-  style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-  onMouseEnter={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'
-    ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
-  }}
-  onMouseLeave={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
-    ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
-  }}
->
-  <IconLogout />
-  Cerrar sesión
-</button>
+              onClick={onGoHome}
+              className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'
+                ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+                ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
+              }}
+            >
+              <IconLogout />
+              Cerrar sesión
+            </button>
             <button onClick={onToggleDark}
               className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors hover:opacity-80"
               style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
@@ -313,16 +337,16 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
             <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--primary)' }} />
             Clasificación automática con ML
           </div>
-           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
-              Bienvenido, {" "}
-              <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {user.name.toUpperCase()}
-              </span>
-            </h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
+            Bienvenido,{' '}
+            <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              {user?.name?.toUpperCase() || 'USUARIO'}
+            </span>
+          </h1>
 
-            <p className="text-lg sm:text-xl font-semibold">
-              Pega tu texto, obtén su categoría
-            </p>
+          <p className="text-lg sm:text-xl font-semibold">
+            Pega tu texto, obtén su categoría
+          </p>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--muted-foreground)' }}>
             Analiza artículos, apuntes y descripciones de cursos. El modelo detecta la disciplina técnica y el nivel de confianza en segundos.
           </p>
@@ -364,9 +388,9 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
           <button onClick={handleAnalyze} disabled={loading || !isValid}
             className="flex items-center justify-center gap-2 w-full sm:w-auto sm:px-8 h-11 rounded-xl font-medium text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: loading || !content.trim() ? 'var(--muted)' : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-              color: loading || !content.trim() ? 'var(--muted-foreground)' : '#fff',
-              boxShadow: loading || !content.trim() ? 'none' : '0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent)',
+              background: loading || !isValid ? 'var(--muted)' : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              color: loading || !isValid ? 'var(--muted-foreground)' : '#fff',
+              boxShadow: loading || !isValid ? 'none' : '0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent)',
             }}>
             {loading ? (<><IconSpinner /><span>Analizando contenido...</span></>) : (<><IconZap /><span>Analizar contenido</span></>)}
           </button>

@@ -1,0 +1,15 @@
+﻿# Node / Front (cualquier ubicacion)
+node_modules/
+**/node_modules/
+dist/
+.vite/
+.vite-temp/
+
+# Backend / Java / Maven
+backend/target/
+target/
+*.class
+
+# Sistema
+.DS_Store
+Thumbs.db
