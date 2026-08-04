@@ -22,7 +22,7 @@ public class UserMapper {
         );
 
     }
-    
+
     public List<UserResponse> toResponseList(List<User> users) {
 
         return users.stream()

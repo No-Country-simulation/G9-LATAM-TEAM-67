@@ -1,5 +1,6 @@
 package com.g9_latam_team_67.backend.service;
 
+import com.g9_latam_team_67.backend.dto.contenido.Categoria;
 import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
@@ -72,6 +73,7 @@ public class ContenidoService {
         );
     }
 
+    @Transactional
     public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
         Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
         contenidoRepository.save(contenido);
@@ -79,4 +81,15 @@ public class ContenidoService {
         return contenidoGuardado;
     }
 
+    public Categoria obtenerCategorias() {
+        List<String> categorias = contenidoRepository.buscarCategorias();
+        Categoria categoria = new Categoria(categorias);
+        return categoria;
+    }
+
+    public List<Contenido> buscarPorCategoria(String categoria, User user) {
+        List<Contenido> resultado = contenidoRepository.findByCategoriaAndUsuarioId(categoria, user.getId());
+        resultado.stream().forEach(System.out::println);
+        return resultado;
+    }
 }
