@@ -1,5 +1,3 @@
-import { IconInfoCircle, IconX } from '@tabler/icons-react'
-
 type ComingSoonModalProps = {
   onClose: () => void
 }

@@ -3,7 +3,7 @@ import { login } from "./services/authService"
 import { register } from "./services/authService";
 import ComingSoonModal from "./components/ComingSoonModal.tsx"
 
-import { useState, useEffect, useRef, UseEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
