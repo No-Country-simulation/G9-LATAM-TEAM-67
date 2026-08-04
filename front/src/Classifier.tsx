@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
+import {
+  classifyContent,
+  type ContentResponse
+} from './services/contentService'
 
 type Category =
   | 'Backend'
@@ -26,6 +30,19 @@ const CATEGORY_CONFIG: Record<Category, { pastelBg: string; dotColor: string; gl
   Cloud: { pastelBg: '#bae6fd', dotColor: '#0284c7', glow: '#0ea5e9' },
   'Bases de Datos': { pastelBg: '#fed7aa', dotColor: '#ea580c', glow: '#f97316' },
 }
+// AGREGADO
+const CATEGORY_MAP: Record<string, Category> = {
+  backend: "Backend",
+  frontend: "Frontend",
+  cloud: "Cloud",
+  "bases de datos": "Bases de Datos",
+  database: "Bases de Datos",
+  databases: "Bases de Datos",
+  ia: "Inteligencia Artificial",
+  ai: "Inteligencia Artificial",
+  "inteligencia artificial": "Inteligencia Artificial",
+}
+
 
 function mockClassify(title: string, content: string): ClassificationResult {
   const text = (title + ' ' + content).toLowerCase()
@@ -185,40 +202,63 @@ export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierP
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
+//   const [result, setResult] = useState<ClassificationResult | null>(null) // CAMBIO
   const [result, setResult] = useState<ClassificationResult | null>(null)
+
   const [copied, setCopied] = useState(false)
   const [resultKey, setResultKey] = useState(0)
   const resultRef = useRef<HTMLDivElement>(null)
 
  const [error, setError] = useState<string | null>(null)
 
-  const handleAnalyze = async () => {
-    if (!content.trim()) return
-    setLoading(true)
-    setResult(null)
-    setError(null)
+const handleAnalyze = async () => {
+  // ===== VALIDACIÓN EXISTENTE =====
+  if (!content.trim()) return
 
-    try {
-      const response = await fetch('http://localhost:8080/contenido', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo: title, texto: content }),
-      })
-
-      if (!response.ok) {
-        throw new Error('El servidor respondió con un error')
-      }
-
-      const data = await response.json()
-      setResult(data)
-      setResultKey(k => k + 1)
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
-    } catch (err) {
-      setError('⚠️ Aún no hay modelo conectado. La API no está disponible en este momento.')
-    } finally {
-      setLoading(false)
-    }
+  // ===== NUEVO: Verifica que exista un usuario autenticado =====
+  if (!user) {
+    setError('Debes iniciar sesión para clasificar contenido.')
+    return
   }
+
+  setLoading(true)
+  setResult(null)
+  setError(null)
+
+  try {
+    // ===== CAMBIO: Ya no usamos fetch directamente =====
+    // Toda la comunicación con el backend queda en contentService.ts
+    const data = await classifyContent(
+      {
+        titulo: title,
+        texto: content,
+      },
+      user.token // ===== CAMBIO: Enviamos el JWT =====
+    )
+console.log("Respuesta del backend:", data) //************************************************ */
+    // ===== SIN CAMBIOS =====
+    setResult(data)
+    setResultKey(k => k + 1)
+
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }, 100)
+
+  } catch (err) {
+    // ===== CAMBIO: Ahora mostramos el mensaje real del error =====
+    if (err instanceof Error) {
+      setError(err.message)
+    } else {
+      setError('Ocurrió un error inesperado.')
+    }
+  } finally {
+    // ===== SIN CAMBIOS =====
+    setLoading(false)
+  }
+}
 
 const handleExample = (ex: typeof EXAMPLES[0]) => {
   setTitle(ex.title)
@@ -249,7 +289,22 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
    const isValid = wordCount >= 10 && wordCount <= 200
 
 
-  const catConfig = result ? CATEGORY_CONFIG[result.category] : null
+// ===== NUEVO: Convierte la categoría del backend al formato del frontend =====
+const mappedCategory = result
+  ? CATEGORY_MAP[result.categoria.toLowerCase()]
+  : undefined
+
+// ===== NUEVO: Obtiene la configuración visual =====
+const catConfig = mappedCategory
+  ? CATEGORY_CONFIG[mappedCategory]
+  : null
+
+// ===== NUEVO: Convierte la probabilidad (0.53 -> 53%) =====
+const confidence = result
+  ? Math.round(result.probabilidad * 100)
+  : 0
+
+
   const jsonStr = result ? JSON.stringify(result, null, 2) : ''
 
   return (
@@ -267,7 +322,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
         style={{ backgroundColor: 'color-mix(in srgb, var(--background) 85%, transparent)', borderColor: 'var(--border)' }}
       >
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <button onClick={onGoHome} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <button className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm"
               style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
               <IconBrain />
@@ -391,39 +446,53 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold"
                       style={{ backgroundColor: catConfig.pastelBg, color: '#0f1117' }}>
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: catConfig.dotColor }} />
-                      {result.category}
+             {mappedCategory}
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>Subcategorías</p>
-                    <div className="flex flex-wrap gap-2">
-                      {result.subcategories.map(s => (
-                        <span key={s} className="text-xs px-2.5 py-1 rounded-lg border"
-                          style={{ borderColor: 'var(--border)', color: 'var(--secondary-foreground)', backgroundColor: 'var(--secondary)' }}>
-                          {s}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 pt-2">
-                    {[
-                      { label: 'Modelo', value: result.model },
-                      { label: 'Tokens', value: result.tokens_analyzed.toLocaleString() },
-                      { label: 'Latencia', value: `${result.processing_time_ms}ms` },
-                    ].map(stat => (
-                      <div key={stat.label}>
-                        <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{stat.label}</p>
-                        <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.value}</p>
-                      </div>
-                    ))}
-                  </div>
+
+               <div className="grid grid-cols-3 gap-4 pt-2">
+                 <div>
+                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
+                   >
+                     ID
+                   </p>
+
+                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                   >
+                     {result.id}
+                   </p>
+                 </div>
+                 <div>
+                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
+                   >
+                     Probabilidad
+                   </p>
+                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                   >
+                     {confidence}%
+                   </p>
+                 </div>
+                 <div>
+                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
+                   >
+                     Fecha
+                   </p>
+
+                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                   >
+                     {new Date(result.fecha).toLocaleString()}
+                   </p>
+                 </div>
+               </div>
+
+
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                  <ConfidenceRing value={result.confidence} color={catConfig.glow} />
+                  <ConfidenceRing value={confidence} color={catConfig.glow} />
                   <div className="w-24">
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
                       <div className="h-full rounded-full transition-all duration-1000"
-                        style={{ width: `${result.confidence}%`, backgroundColor: catConfig.glow, transitionDelay: '300ms' }} />
+                        style={{ width: `${confidence}%`, backgroundColor: catConfig.glow, transitionDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>

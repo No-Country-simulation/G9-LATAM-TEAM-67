@@ -1,6 +1,7 @@
 // ===== NUEVO: Servicio de autenticación =====
 import { login } from "./services/authService"
 import { register } from "./services/authService";
+import ComingSoonModal from "./components/ComingSoonModal.tsx"
 
 import { useState, useEffect, useRef, UseEffect } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
@@ -611,6 +612,7 @@ type ModalType = 'login' | 'register' | null
 
 export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingPageProps) {
   const [modal, setModal] = useState<ModalType>(null)
+  const [showComingSoon, setShowComingSoon] = useState(false)
 
   const handleSuccess = () => {
     setModal(null)
@@ -643,7 +645,7 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
               style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
               <IconBrain size={18} />
             </div>
-            <span className="font-semibold text-sm tracking-tight">Clasificador de Contenido Técnico</span>
+            <span className="font-semibold text-sm tracking-tight">Organización Inteligente del Conocimiento Técnico</span>
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -692,7 +694,7 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
               </h1>
 
               <p className="text-lg leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
-                Clasifica, organiza y encuentra tu contenido técnico de forma automática usando Machine Learning. Detecta categorías, niveles de confianza y subcategorías en segundos.
+                Clasifica, organiza y encuentra tu contenido técnico de forma automática usando Machine Learning. Detecta categorías y niveles de confianza en segundos.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -702,7 +704,8 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
                     boxShadow: '0 6px 20px color-mix(in srgb, var(--primary) 35%, transparent)' }}>
                   Registrate →
                 </button>
-                <button onClick={onEnterApp}
+                <button
+                  onClick={() => setShowComingSoon(true)}
                   className="flex items-center justify-center h-12 px-8 rounded-xl font-medium text-base border transition-all"
                   style={{ borderColor: 'var(--border)', color: 'var(--foreground)', backgroundColor: 'var(--card)' }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'color-mix(in srgb, var(--primary) 40%, transparent)'}
@@ -887,6 +890,11 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
           onSuccess={() => setModal('login')}
         />
       )}
+  {showComingSoon && (
+    <ComingSoonModal
+      onClose={() => setShowComingSoon(false)}
+    />
+  )}
     </>
   )
 }
