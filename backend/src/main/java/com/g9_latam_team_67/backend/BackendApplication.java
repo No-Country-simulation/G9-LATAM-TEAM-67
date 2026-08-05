@@ -9,7 +9,7 @@ public class BackendApplication {
 
     public static void main(String[] args) {
         System.setProperty("oracle.net.tns_admin",
-                System.getProperty("user.dir") + "/backend/src/main/resources/wallet");
+            System.getProperty("user.dir") + "/src/main/resources/wallet");
         SpringApplication.run(BackendApplication.class, args);
     }
 

@@ -1,21 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
-  Search,
-  Shield,
-  Sun,
-  Moon,
-  ArrowLeft,
-  Plus,
-  Pencil,
-  Power,
-  Trash2,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  AlertTriangle,
-  BrainCircuit,
+  Search, Shield, Sun, Moon, ArrowLeft, Plus, Pencil, Power, Trash2, Eye,
+  ChevronLeft, ChevronRight, X, AlertTriangle, BrainCircuit, Loader2,
 } from "lucide-react";
+import { useUser } from './UserContext'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,22 +19,49 @@ interface User {
   registeredAt: string;
 }
 
+// Forma cruda que puede venir del backend (nombres de campo inciertos)
+interface RawUser {
+  id: number | string;
+  name?: string;
+  nombre?: string;
+  email: string;
+  role?: string;
+  rol?: string;
+  active?: boolean;
+  enabled?: boolean;
+  status?: string;
+  estado?: string;
+  createdAt?: string;
+  registeredAt?: string;
+  fechaRegistro?: string;
+}
+
+// Convierte lo que venga del backend a la forma que ya usa este componente
+function normalizeUser(raw: RawUser): User {
+  const rawRole = (raw.role ?? raw.rol ?? "USER").toString().toUpperCase();
+  const role: Role = rawRole === "ADMIN" ? "Admin" : "User";
+
+  let status: Status = "Activo";
+  if (typeof raw.active === "boolean") status = raw.active ? "Activo" : "Inactivo";
+  else if (typeof raw.enabled === "boolean") status = raw.enabled ? "Activo" : "Inactivo";
+  else if (raw.status) status = raw.status.toUpperCase() === "ACTIVO" || raw.status.toUpperCase() === "ACTIVE" ? "Activo" : "Inactivo";
+  else if (raw.estado) status = raw.estado.toUpperCase() === "ACTIVO" ? "Activo" : "Inactivo";
+
+  return {
+    id: String(raw.id),
+    name: raw.name ?? raw.nombre ?? "Sin nombre",
+    email: raw.email,
+    role,
+    status,
+    registeredAt: raw.createdAt ?? raw.registeredAt ?? raw.fechaRegistro ?? new Date().toISOString(),
+  };
+}
+
 interface ConfirmModal {
   open: boolean;
   action: "delete" | "toggle" | "edit" | "view" | null;
   user: User | null;
 }
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_USERS: User[] = [
-  { id: "#001", name: "Ana García", email: "ana.garcia@email.com", role: "Admin", status: "Activo", registeredAt: "2026-01-12" },
-  { id: "#002", name: "Carlos Mendoza", email: "carlos.mendoza@email.com", role: "User", status: "Activo", registeredAt: "2026-02-03" },
-  { id: "#003", name: "Laura Torres", email: "laura.torres@email.com", role: "User", status: "Activo", registeredAt: "2026-03-18" },
-  { id: "#004", name: "Diego Ramírez", email: "diego.ramirez@email.com", role: "User", status: "Inactivo", registeredAt: "2026-04-07" },
-  { id: "#005", name: "Sofía Castro", email: "sofia.castro@email.com", role: "User", status: "Activo", registeredAt: "2026-05-22" },
-  { id: "#006", name: "Miguel Ángel Ruiz", email: "miguel.ruiz@email.com", role: "Admin", status: "Activo", registeredAt: "2026-07-12" },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -164,12 +179,40 @@ function ActionButton({ tooltip, danger, children, ...props }: ActionButtonProps
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function UserManagement({ onGoBack }: { onGoBack: () => void }) {
+  const { user: currentUser } = useUser();
   const [dark, setDark] = useState(false);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | Role>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | Status>("all");
   const [modal, setModal] = useState<ConfirmModal>({ open: false, action: null, user: null });
-  const [users, setUsers] = useState<User[]>(MOCK_USERS);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoadingUsers(true);
+      setLoadError(null);
+      try {
+        const response = await fetch('http://localhost:8080/users', {
+          headers: {
+            'Authorization': `Bearer ${currentUser?.token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`Error ${response.status} al cargar usuarios`);
+        }
+        const data: RawUser[] = await response.json();
+        setUsers(data.map(normalizeUser));
+      } catch (err) {
+        console.error(err);
+        setLoadError('No se pudieron cargar los usuarios desde el servidor.');
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    fetchUsers();
+  }, [currentUser]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -336,7 +379,18 @@ export default function UserManagement({ onGoBack }: { onGoBack: () => void }) {
             </select>
           </div>
 
-          {filtered.length > 0 ? (
+          {loadingUsers ? (
+            <div className="rounded-2xl border border-border bg-card flex flex-col items-center justify-center py-20 px-6 text-center space-y-3">
+              <Loader2 size={28} className="animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Cargando usuarios...</p>
+            </div>
+          ) : loadError ? (
+            <div className="rounded-2xl border border-border bg-card flex flex-col items-center justify-center py-20 px-6 text-center space-y-3">
+              <AlertTriangle size={28} className="text-red-500" />
+              <p className="text-sm font-medium text-foreground">{loadError}</p>
+              <p className="text-xs text-muted-foreground">Verifica que el backend esté corriendo y que tengas permisos de administrador.</p>
+            </div>
+          ) : filtered.length > 0 ? (
             <>
               <div className="hidden md:block rounded-2xl border border-border overflow-hidden bg-card">
                 <table className="w-full text-sm">
