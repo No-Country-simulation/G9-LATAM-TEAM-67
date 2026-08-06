@@ -158,11 +158,11 @@ Los modelos fueron comparados utilizando **Validación Cruzada (Cross Validation
 
 | Modelo | Accuracy |
 |---------|----------:|
-| 🥇 Multinomial Naive Bayes | **0.9335** |
-| 🥈 Linear SVC | **0.9297** |
-| 🥉 Logistic Regression | **0.9258** |
+| 🥇 Logistic Regression | **0.996476** |
+| 🥈 Linear SVC | **0.996475** |
+| 🥉 Multinomial Naive Bayes | **0.995066** |
 
-De acuerdo con los resultados obtenidos, **Multinomial Naive Bayes** fue seleccionado como el modelo final por presentar el mejor desempeño promedio.
+De acuerdo con los resultados obtenidos, **Logistic Regression** fue seleccionado como el modelo final por presentar el mejor desempeño promedio.
 
 ---
 
@@ -176,7 +176,7 @@ El modelo seleccionado fue evaluado sobre el conjunto de prueba utilizando las s
 - F1-Score
 - Matriz de Confusión
 
-**Accuracy obtenido en el conjunto de prueba:** **0.9375**
+**Accuracy obtenido en el conjunto de prueba:** **0.9981**
 
 Los resultados mostraron un buen desempeño en todas las categorías, permitiendo una clasificación consistente del contenido técnico.
 
