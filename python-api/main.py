@@ -45,6 +45,12 @@ def load_model():
     status_code=status.HTTP_200_OK,
     summary="Clasifica el texto y devuelve únicamente la categoría determinada."
 )
+@app.post(
+    "/predict/",
+    response_model=ClasificacionOutput,
+    status_code=status.HTTP_200_OK,
+    summary="Clasifica el texto y devuelve únicamente la categoría determinada.",
+    include_in_schema=False)
 async def clasificar_texto(payload: ContenidoInput):
     if model_pipeline is None:
         raise HTTPException(
