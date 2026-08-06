@@ -1,13 +1,16 @@
 {
-    "modelo": "Multinomial Naive Bayes",
-    "version": "1.0",
-    "accuracy_cv": 0.9335,
-    "accuracy_test": 0.9375,
+    "modelo": "Logistic Regression",
+    "version": "1.1",
+    "accuracy_cv": 0.9964,
+    "accuracy_test": 0.9981,
     "categorias": [
         "backend",
         "frontend",
         "basesdedatos",
         "cloud",
+        "ia"
+    ]
+}
         "ia"
     ]
 }
