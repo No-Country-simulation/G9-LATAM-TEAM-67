@@ -29,7 +29,9 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -82,6 +84,18 @@ class ContenidoControllerTests {
                 .andExpect(jsonPath("$.categoria").value("Backend"))
                 .andExpect(jsonPath("$.probabilidad").value(0.90))
                 .andExpect(jsonPath("$.fecha").exists());
+    }
+
+    @Test
+    void rutaDeContenidoEnPluralDevuelveNotFound() throws Exception {
+        mockMvc.perform(post("/api/contenidos/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Ruta no encontrada"))
+                .andExpect(jsonPath("$.path").value("/api/contenidos/clasificar"));
     }
 
     @Test
@@ -288,6 +302,24 @@ class ContenidoControllerTests {
         Contenido guardado = contenidoRepository.findAll().get(0);
         assertThat(guardado.getUsuario()).isNotNull();
         assertThat(guardado.getUsuario().getEmail()).isEqualTo(usuarioAutenticado.getEmail());
+    }
+
+    @Test
+    void clasificacionEnviaTituloYTextoConcatenadosAlModelo() throws Exception {
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<ClasificacionApiRequest> captor =
+                ArgumentCaptor.forClass(ClasificacionApiRequest.class);
+        verify(clasificacionService).enviarTexto(captor.capture());
+
+        assertThat(captor.getValue().texto()).isEqualTo(
+                "Introducción a Spring Boot "
+                        + "Aprende a desarrollar APIs REST utilizando Java y Spring Boot."
+        );
     }
 
     @Test

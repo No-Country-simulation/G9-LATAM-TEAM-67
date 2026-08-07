@@ -14,7 +14,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -28,6 +31,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
+import static org.springframework.http.HttpMethod.POST;
 
 @ExtendWith(MockitoExtension.class)
 class ClasificacionServiceTests {
@@ -74,7 +83,24 @@ class ClasificacionServiceTests {
     }
 
     @Test
-    void respuestaHttpNoExitosaGeneraUpstreamError() {
+    void respuestaHttp400GeneraUpstreamErrorYConservaElEstado() {
+        mockFailure(HttpClientErrorException.create(
+                HttpStatus.BAD_REQUEST,
+                "bad request",
+                HttpHeaders.EMPTY,
+                "detalle de validación".getBytes(),
+                null
+        ));
+
+        assertThatThrownBy(() -> clasificacionService.enviarTexto(request()))
+                .isInstanceOf(ClassifierUpstreamException.class)
+                .satisfies(exception -> assertThat(
+                        ((ClassifierUpstreamException) exception).getUpstreamStatus()
+                ).isEqualTo(400));
+    }
+
+    @Test
+    void respuestaHttp500GeneraUpstreamErrorYConservaElEstado() {
         mockFailure(HttpServerErrorException.create(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "error",
@@ -84,7 +110,47 @@ class ClasificacionServiceTests {
         ));
 
         assertThatThrownBy(() -> clasificacionService.enviarTexto(request()))
-                .isInstanceOf(ClassifierUpstreamException.class);
+                .isInstanceOf(ClassifierUpstreamException.class)
+                .satisfies(exception -> assertThat(
+                        ((ClassifierUpstreamException) exception).getUpstreamStatus()
+                ).isEqualTo(500));
+    }
+
+    @Test
+    void eliminaEspaciosExterioresDeLaUrlConfigurada() {
+        clasificacionService = new ClasificacionService(
+                restTemplate,
+                "  " + CLASSIFIER_URL + "  "
+        );
+        mockResponse(new ClasificacionApiResponse("Backend", new BigDecimal("0.95")));
+
+        clasificacionService.enviarTexto(request());
+    }
+
+    @Test
+    void enviaElCuerpoJsonEsperadoPorLaApiPython() {
+        RestTemplate realRestTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(realRestTemplate).build();
+        ClasificacionService servicioReal = new ClasificacionService(
+                realRestTemplate,
+                CLASSIFIER_URL
+        );
+
+        server.expect(requestTo(CLASSIFIER_URL))
+                .andExpect(method(POST))
+                .andExpect(header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE))
+                .andExpect(content().json("""
+                        {"texto":"Texto técnico para clasificar"}
+                        """))
+                .andRespond(withSuccess("""
+                        {"category":"Backend","probability":0.95}
+                        """, MediaType.APPLICATION_JSON));
+
+        ClasificacionApiResponse response = servicioReal.enviarTexto(request());
+
+        assertThat(response.category()).isEqualTo("Backend");
+        assertThat(response.probability()).isEqualByComparingTo("0.95");
+        server.verify();
     }
 
     @Test
