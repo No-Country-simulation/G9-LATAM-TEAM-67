@@ -29,7 +29,9 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -85,6 +87,18 @@ class ContenidoControllerTests {
     }
 
     @Test
+    void rutaDeContenidoEnPluralDevuelveNotFound() throws Exception {
+        mockMvc.perform(post("/api/contenidos/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Ruta no encontrada"))
+                .andExpect(jsonPath("$.path").value("/api/contenidos/clasificar"));
+    }
+
+    @Test
     void tituloVacioDevuelveBadRequest() throws Exception {
         mockMvc.perform(post("/api/contenido")
                         .header(HttpHeaders.AUTHORIZATION, bearerToken())
@@ -114,13 +128,102 @@ class ContenidoControllerTests {
 
     @Test
     void getDevuelveLista() throws Exception {
-        crearContenido();
+        guardarContenido(usuarioAutenticado, "Contenido propio", "Backend");
 
         mockMvc.perform(get("/api/contenido")
                         .header(HttpHeaders.AUTHORIZATION, bearerToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].categoria").value("Backend"));
+    }
+
+    @Test
+    void usuarioNormalListaSoloSusContenidos() throws Exception {
+        User otroUsuario = userRepository.save(nuevoUsuario("otro@techmind.test"));
+        guardarContenido(usuarioAutenticado, "Contenido propio", "Backend");
+        guardarContenido(otroUsuario, "Contenido ajeno", "Frontend");
+
+        mockMvc.perform(get("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].titulo").value("Contenido propio"));
+    }
+
+    @Test
+    void usuarioNormalVeSoloCategoriasDeSusContenidos() throws Exception {
+        User otroUsuario = userRepository.save(nuevoUsuario("otro@techmind.test"));
+        guardarContenido(usuarioAutenticado, "Contenido propio", "Backend");
+        guardarContenido(otroUsuario, "Contenido ajeno", "Frontend");
+
+        mockMvc.perform(get("/api/contenido/categorias")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categorias", hasSize(1)))
+                .andExpect(jsonPath("$.categorias[0]").value("Backend"));
+    }
+
+    @Test
+    void usuarioNormalFiltraSoloDentroDeSusContenidos() throws Exception {
+        User otroUsuario = userRepository.save(nuevoUsuario("otro@techmind.test"));
+        guardarContenido(usuarioAutenticado, "Backend propio", "Backend");
+        guardarContenido(otroUsuario, "Backend ajeno", "Backend");
+
+        mockMvc.perform(get("/api/contenido/buscar")
+                        .param("categoria", "Backend")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].titulo").value("Backend propio"));
+    }
+
+    @Test
+    void busquedaSinResultadosDevuelveListaVacia() throws Exception {
+        guardarContenido(usuarioAutenticado, "Contenido propio", "Backend");
+
+        mockMvc.perform(get("/api/contenido/buscar")
+                        .param("categoria", "Frontend")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void adminListaCategoriasYFiltraContenidosGlobales() throws Exception {
+        User otroUsuario = userRepository.save(nuevoUsuario("otro@techmind.test"));
+        User admin = userRepository.save(nuevoUsuario("admin@techmind.test", Role.ADMIN));
+        String tokenAdmin = tokenService.generateToken(admin);
+        guardarContenido(usuarioAutenticado, "Backend usuario uno", "Backend");
+        guardarContenido(otroUsuario, "Frontend usuario dos", "Frontend");
+        guardarContenido(otroUsuario, "Backend usuario dos", "Backend");
+
+        mockMvc.perform(get("/api/contenido")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(3)));
+
+        mockMvc.perform(get("/api/contenido/categorias")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.categorias", hasSize(2)))
+                .andExpect(jsonPath("$.categorias[0]").value("Backend"))
+                .andExpect(jsonPath("$.categorias[1]").value("Frontend"));
+
+        mockMvc.perform(get("/api/contenido/buscar")
+                        .param("categoria", "Backend")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
+    }
+
+    @Test
+    void rutasDeConsultaSinAutenticacionDevuelvenUnauthorized() throws Exception {
+        mockMvc.perform(get("/api/contenido"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/contenido/categorias"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/contenido/buscar").param("categoria", "Backend"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -199,6 +302,24 @@ class ContenidoControllerTests {
         Contenido guardado = contenidoRepository.findAll().get(0);
         assertThat(guardado.getUsuario()).isNotNull();
         assertThat(guardado.getUsuario().getEmail()).isEqualTo(usuarioAutenticado.getEmail());
+    }
+
+    @Test
+    void clasificacionEnviaTituloYTextoConcatenadosAlModelo() throws Exception {
+        mockMvc.perform(post("/api/contenido/clasificar")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(contenidoValido()))
+                .andExpect(status().isCreated());
+
+        ArgumentCaptor<ClasificacionApiRequest> captor =
+                ArgumentCaptor.forClass(ClasificacionApiRequest.class);
+        verify(clasificacionService).enviarTexto(captor.capture());
+
+        assertThat(captor.getValue().texto()).isEqualTo(
+                "Introducción a Spring Boot "
+                        + "Aprende a desarrollar APIs REST utilizando Java y Spring Boot."
+        );
     }
 
     @Test
@@ -293,16 +414,30 @@ class ContenidoControllerTests {
     }
 
     private User nuevoUsuario(String email) {
+        return nuevoUsuario(email, Role.USER);
+    }
+
+    private User nuevoUsuario(String email, Role role) {
         LocalDateTime ahora = LocalDateTime.now();
         return User.builder()
                 .name("Usuario de prueba")
                 .email(email)
                 .password("password-cifrado")
-                .role(Role.USER)
+                .role(role)
                 .active(true)
                 .createdAt(ahora)
                 .updatedAt(ahora)
                 .build();
+    }
+
+    private Contenido guardarContenido(User usuario, String titulo, String categoria) {
+        return contenidoRepository.saveAndFlush(new Contenido(
+                titulo,
+                "Texto suficientemente largo para las pruebas de contenido.",
+                categoria,
+                new BigDecimal("0.90"),
+                usuario
+        ));
     }
 
     private String contenidoValido() {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import LandingPage from './LandingPage'
 import Classifier from './Classifier'
+import ContentLibrary from './ContentLibrary'
 import { useUser } from './UserContext'
 
-type Page = 'landing' | 'app'
+type Page = 'landing' | 'classifier' | 'contents'
 
 export default function App() {
   const [dark, setDark] = useState(false)
@@ -14,7 +15,7 @@ export default function App() {
   // ===== NUEVO: Si existe una sesión restaurada, entrar a la aplicación =====
   useEffect(() => {
     if (user) {
-      setPage('app')
+      setPage('classifier')
     }
   }, [user])
 
@@ -32,15 +33,27 @@ export default function App() {
           <LandingPage
             dark={dark}
             onToggleDark={() => setDark(d => !d)}
-            onEnterApp={() => setPage('app')}
+            onEnterApp={() => setPage('classifier')}
           />
-        ) : (
+        ) : page === 'classifier' ? (
           <Classifier
             dark={dark}
             onToggleDark={() => setDark(d => !d)}
-            onGoHome={() => {
+            onGoHome={() => setPage('landing')}
+            onViewContents={() => setPage('contents')}
+            onLogout={() => {
               setUser(null)
-              localStorage.removeItem("user")
+              setPage('landing')
+            }}
+          />
+        ) : (
+          <ContentLibrary
+            dark={dark}
+            onToggleDark={() => setDark(d => !d)}
+            onGoHome={() => setPage('landing')}
+            onClassify={() => setPage('classifier')}
+            onLogout={() => {
+              setUser(null)
               setPage('landing')
             }}
           />

@@ -185,9 +185,11 @@ interface ClassifierProps {
   dark: boolean
   onToggleDark: () => void
   onGoHome: () => void
+  onViewContents: () => void
+  onLogout: () => void
 }
 
-export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierProps) {
+export default function Classifier({ dark, onToggleDark, onGoHome, onViewContents, onLogout }: ClassifierProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
@@ -319,21 +321,28 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
           </button>
           <div className="flex items-center gap-3">
             <button
-  onClick={onGoHome}
-  className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
-  style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-  onMouseEnter={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'
-    ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
-  }}
-  onMouseLeave={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
-    ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
-  }}
->
-  <IconLogout />
-  Cerrar sesión
-</button>
+              onClick={onLogout}
+              className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#ef4444'
+                e.currentTarget.style.color = '#ef4444'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--border)'
+                e.currentTarget.style.color = 'var(--muted-foreground)'
+              }}
+            >
+              <IconLogout />
+              Cerrar sesión
+            </button>
+            <button
+              onClick={onViewContents}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            >
+              Contenidos
+            </button>
             <button onClick={onToggleDark}
               className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors hover:opacity-80"
               style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
