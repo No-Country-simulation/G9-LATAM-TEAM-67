@@ -55,12 +55,14 @@ public class Contenido {
         this.probabilidad = probabilidad;
         this.usuario = usuario;
     }
+
     @PrePersist
-    void asignarFecha(){
-        if (fecha== null){
+    void asignarFecha() {
+        if (fecha == null) {
             fecha = LocalDateTime.now();
         }
     }
+
     public Long getId() {
         return id;
     }

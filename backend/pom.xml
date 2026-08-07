@@ -147,6 +147,13 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+
+        <!--        Manejo de variables de entorno-->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -161,4 +168,4 @@
 
     </build>
 
- </project>
+</project>

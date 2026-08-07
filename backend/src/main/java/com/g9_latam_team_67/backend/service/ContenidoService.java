@@ -20,11 +20,6 @@ import java.util.List;
 public class ContenidoService {
     private static final String CATEGORIA_SIMULADA = "Backend";
 
-    // CAMBIO: "double" -> "BigDecimal". El constructor de Contenido fue
-    // actualizado para recibir BigDecimal (porque la columna en Oracle es
-    // NUMBER(5,4), no FLOAT), así que este valor debe coincidir en tipo.
-    // Se usa new BigDecimal("0.90") en vez de BigDecimal.valueOf(0.90)
-    // para evitar imprecisiones de punto flotante en la conversión.
     private static final BigDecimal PROBABILIDAD_SIMULADA = new BigDecimal("0.90");
 
     private final ContenidoRepository contenidoRepository;
@@ -32,6 +27,7 @@ public class ContenidoService {
     public ContenidoService(ContenidoRepository contenidoRepository) {
         this.contenidoRepository = contenidoRepository;
     }
+
     @Transactional
     public ContenidoResponse crearContenido(ContenidoRequest request) {
         Contenido contenido = new Contenido(
@@ -44,6 +40,7 @@ public class ContenidoService {
 
         return convertirRespuesta(contenidoRepository.save(contenido));
     }
+
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ContenidoResponse> obtenerTodos() {
         return contenidoRepository.findAll()
@@ -74,10 +71,10 @@ public class ContenidoService {
     }
 
     @Transactional
-    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
+    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual) {
         Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
         contenidoRepository.save(contenido);
-        ContenidoResponse contenidoGuardado =  new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
+        ContenidoResponse contenidoGuardado = new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
         return contenidoGuardado;
     }
 

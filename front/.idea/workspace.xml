@@ -5,13 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="58ba26d4-0d74-4877-8710-b86e5af127ef" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/dto/contenido/Categoria.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/RUTAS.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/RUTAS.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/CorsConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/controller/ContenidoController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/ContenidoRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../backend/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/BackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/BackendApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/config/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/entity/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/entity/Contenido.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/entity/Contenido.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/exception/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/repository/.gitkeep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/security/.gitkeep" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/java/com/g9_latam_team_67/backend/service/ContenidoService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../backend/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../backend/src/main/resources/db.migration/.gitkeep" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -33,20 +38,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "Merging respaldo",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/mahe2/OneDrive/Escritorio/G9-LATAM-TEAM-67/front",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;respaldo&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/mahe2/OneDrive/Escritorio/G9-LATAM-TEAM-67/front&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="58ba26d4-0d74-4877-8710-b86e5af127ef" name="Changes" comment="" />
