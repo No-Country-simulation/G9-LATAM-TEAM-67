@@ -5,13 +5,14 @@ import com.g9_latam_team_67.backend.dto.contenido.ClasificacionApiResponse;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoRequest;
 import com.g9_latam_team_67.backend.dto.contenido.ContenidoResponse;
 import com.g9_latam_team_67.backend.entity.Contenido;
+import com.g9_latam_team_67.backend.entity.Role;
 import com.g9_latam_team_67.backend.entity.User;
 import com.g9_latam_team_67.backend.exception.ContenidoNoEncontradoException;
 import com.g9_latam_team_67.backend.repository.ContenidoRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +21,11 @@ import java.util.List;
 public class ContenidoService {
     private static final String CATEGORIA_SIMULADA = "Backend";
 
+    // CAMBIO: "double" -> "BigDecimal". El constructor de Contenido fue
+    // actualizado para recibir BigDecimal (porque la columna en Oracle es
+    // NUMBER(5,4), no FLOAT), así que este valor debe coincidir en tipo.
+    // Se usa new BigDecimal("0.90") en vez de BigDecimal.valueOf(0.90)
+    // para evitar imprecisiones de punto flotante en la conversión.
     private static final BigDecimal PROBABILIDAD_SIMULADA = new BigDecimal("0.90");
 
     private final ContenidoRepository contenidoRepository;
@@ -27,7 +33,6 @@ public class ContenidoService {
     public ContenidoService(ContenidoRepository contenidoRepository) {
         this.contenidoRepository = contenidoRepository;
     }
-
     @Transactional
     public ContenidoResponse crearContenido(ContenidoRequest request) {
         Contenido contenido = new Contenido(
@@ -40,10 +45,14 @@ public class ContenidoService {
 
         return convertirRespuesta(contenidoRepository.save(contenido));
     }
-
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public List<ContenidoResponse> obtenerTodos() {
-        return contenidoRepository.findAll()
+    public List<ContenidoResponse> obtenerTodos(User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<Contenido> contenidos = esAdmin(userActual)
+                ? contenidoRepository.findAll()
+                : contenidoRepository.findAllByUsuario(userActual);
+
+        return contenidos
                 .stream()
                 .map(this::convertirRespuesta)
                 .toList();
@@ -71,22 +80,46 @@ public class ContenidoService {
     }
 
     @Transactional
-    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual) {
+    public ContenidoResponse guardar(ContenidoRequest request, ClasificacionApiResponse response, User userActual){
+        if (userActual == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Se requiere un usuario autenticado");
+        }
+        if (!Boolean.TRUE.equals(userActual.getActive())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario autenticado está inactivo");
+        }
+
         Contenido contenido = new Contenido(request.titulo(), request.texto(), response.category(), response.probability(), userActual);
-        contenidoRepository.save(contenido);
-        ContenidoResponse contenidoGuardado = new ContenidoResponse(contenido.getId(), contenido.getTitulo(), contenido.getTexto(), contenido.getCategoria(), contenido.getProbabilidad(), contenido.getFecha());
-        return contenidoGuardado;
+        return convertirRespuesta(contenidoRepository.save(contenido));
     }
 
-    public Categoria obtenerCategorias() {
-        List<String> categorias = contenidoRepository.buscarCategorias();
-        Categoria categoria = new Categoria(categorias);
-        return categoria;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Categoria obtenerCategorias(User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<String> categorias = esAdmin(userActual)
+                ? contenidoRepository.buscarCategorias()
+                : contenidoRepository.buscarCategoriasPorUsuario(userActual);
+        return new Categoria(categorias);
     }
 
-    public List<Contenido> buscarPorCategoria(String categoria, User user) {
-        List<Contenido> resultado = contenidoRepository.findByCategoriaAndUsuarioId(categoria, user.getId());
-        resultado.stream().forEach(System.out::println);
-        return resultado;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public List<ContenidoResponse> buscarPorCategoria(String categoria, User userActual) {
+        validarUsuarioAutenticado(userActual);
+        List<Contenido> resultado = esAdmin(userActual)
+                ? contenidoRepository.findByCategoria(categoria)
+                : contenidoRepository.findByCategoriaAndUsuarioId(categoria, userActual.getId());
+
+        return resultado.stream()
+                .map(this::convertirRespuesta)
+                .toList();
+    }
+
+    private boolean esAdmin(User user) {
+        return user.getRole() == Role.ADMIN;
+    }
+
+    private void validarUsuarioAutenticado(User user) {
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Se requiere un usuario autenticado");
+        }
     }
 }

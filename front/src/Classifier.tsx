@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
 import {
   classifyContent,
-  type ContentResponse
+  ContentServiceError,
+  type ClassificationResponse,
 } from './services/contentService'
 
 type Category =
@@ -13,7 +14,7 @@ type Category =
   | 'Bases de Datos'
 
 interface ClassificationResult {
-  category: Category
+  category: string
   confidence: number
   label_id: number
   model: string
@@ -21,6 +22,7 @@ interface ClassificationResult {
   tokens_analyzed: number
   subcategories: string[]
   timestamp: string
+  response?: ClassificationResponse
 }
 
 const CATEGORY_CONFIG: Record<Category, { pastelBg: string; dotColor: string; glow: string }> = {
@@ -30,19 +32,6 @@ const CATEGORY_CONFIG: Record<Category, { pastelBg: string; dotColor: string; gl
   Cloud: { pastelBg: '#bae6fd', dotColor: '#0284c7', glow: '#0ea5e9' },
   'Bases de Datos': { pastelBg: '#fed7aa', dotColor: '#ea580c', glow: '#f97316' },
 }
-// AGREGADO
-const CATEGORY_MAP: Record<string, Category> = {
-  backend: "Backend",
-  frontend: "Frontend",
-  cloud: "Cloud",
-  "bases de datos": "Bases de Datos",
-  database: "Bases de Datos",
-  databases: "Bases de Datos",
-  ia: "Inteligencia Artificial",
-  ai: "Inteligencia Artificial",
-  "inteligencia artificial": "Inteligencia Artificial",
-}
-
 
 function mockClassify(title: string, content: string): ClassificationResult {
   const text = (title + ' ' + content).toLowerCase()
@@ -196,69 +185,78 @@ interface ClassifierProps {
   dark: boolean
   onToggleDark: () => void
   onGoHome: () => void
+  onViewContents: () => void
+  onLogout: () => void
 }
 
-export default function Classifier({ dark, onToggleDark, onGoHome }: ClassifierProps) {
+export default function Classifier({ dark, onToggleDark, onGoHome, onViewContents, onLogout }: ClassifierProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
-//   const [result, setResult] = useState<ClassificationResult | null>(null) // CAMBIO
   const [result, setResult] = useState<ClassificationResult | null>(null)
-
   const [copied, setCopied] = useState(false)
   const [resultKey, setResultKey] = useState(0)
   const resultRef = useRef<HTMLDivElement>(null)
+  const { user } = useUser()
 
- const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-const handleAnalyze = async () => {
-  // ===== VALIDACIÓN EXISTENTE =====
-  if (!content.trim()) return
+  const handleAnalyze = async () => {
+    if (loading || !content.trim()) return
 
-  // ===== NUEVO: Verifica que exista un usuario autenticado =====
-  if (!user) {
-    setError('Debes iniciar sesión para clasificar contenido.')
-    return
-  }
+    const token = user?.token
+    if (!token) {
+      setResult(null)
+      setError('Debes iniciar sesión para clasificar contenido.')
+      return
+    }
 
-  setLoading(true)
-  setResult(null)
-  setError(null)
+    setLoading(true)
+    setResult(null)
+    setError(null)
 
-  try {
-    // ===== CAMBIO: Ya no usamos fetch directamente =====
-    // Toda la comunicación con el backend queda en contentService.ts
-    const data = await classifyContent(
-      {
+    try {
+      const data = await classifyContent({
         titulo: title,
         texto: content,
-      },
-      user.token // ===== CAMBIO: Enviamos el JWT =====
-    )
-console.log("Respuesta del backend:", data) //************************************************ */
-    // ===== SIN CAMBIOS =====
-    setResult(data)
-    setResultKey(k => k + 1)
+      }, token)
+      const probability = data.probabilidad <= 1
+        ? data.probabilidad * 100
+        : data.probabilidad
 
-    setTimeout(() => {
-      resultRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
+      setResult({
+        category: data.categoria,
+        confidence: Math.max(0, Math.min(100, probability)),
+        label_id: -1,
+        model: 'tech-classifier-v2.1',
+        processing_time_ms: 0,
+        tokens_analyzed: (data.titulo + ' ' + data.texto).trim().split(/\s+/).filter(Boolean).length,
+        subcategories: [],
+        timestamp: data.fecha,
+        response: data,
       })
-    }, 100)
-
-  } catch (err) {
-    // ===== CAMBIO: Ahora mostramos el mensaje real del error =====
-    if (err instanceof Error) {
-      setError(err.message)
-    } else {
-      setError('Ocurrió un error inesperado.')
+      setResultKey(k => k + 1)
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+    } catch (err) {
+      if (err instanceof ContentServiceError) {
+        if (err.status === 401) {
+          setError('Tu sesión no es válida o ha expirado. Inicia sesión nuevamente.')
+        } else if (err.status === 403) {
+          setError('No tienes autorización para clasificar contenido.')
+        } else if (err.status === 502) {
+          setError('El modelo devolvió una respuesta inválida. Inténtalo nuevamente más tarde.')
+        } else if (err.status === 503) {
+          setError('El servicio de clasificación no está disponible en este momento. Inténtalo nuevamente más tarde.')
+        } else {
+          setError(`Error HTTP ${err.status}: ${err.message}`)
+        }
+      } else {
+        setError('No fue posible conectar con la API. Revisa tu conexión e inténtalo de nuevo.')
+      }
+    } finally {
+      setLoading(false)
     }
-  } finally {
-    // ===== SIN CAMBIOS =====
-    setLoading(false)
   }
-}
 
 const handleExample = (ex: typeof EXAMPLES[0]) => {
   setTitle(ex.title)
@@ -283,29 +281,16 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
-  const { user } = useUser()
-
    const wordCount = content.trim().split(/\s+/).filter(Boolean).length
-   const isValid = wordCount >= 10 && wordCount <= 200
+   const isValid = Boolean(title.trim()) && wordCount >= 10 && wordCount <= 200
 
 
-// ===== NUEVO: Convierte la categoría del backend al formato del frontend =====
-const mappedCategory = result
-  ? CATEGORY_MAP[result.categoria.toLowerCase()]
-  : undefined
-
-// ===== NUEVO: Obtiene la configuración visual =====
-const catConfig = mappedCategory
-  ? CATEGORY_CONFIG[mappedCategory]
-  : null
-
-// ===== NUEVO: Convierte la probabilidad (0.53 -> 53%) =====
-const confidence = result
-  ? Math.round(result.probabilidad * 100)
-  : 0
-
-
-  const jsonStr = result ? JSON.stringify(result, null, 2) : ''
+  const catConfig = result
+    ? CATEGORY_CONFIG[result.category as Category] ?? CATEGORY_CONFIG.Backend
+    : null
+  const jsonStr = result
+    ? JSON.stringify(result.response ?? result, null, 2)
+    : ''
 
   return (
     <>
@@ -328,29 +313,37 @@ const confidence = result
               <IconBrain />
             </div>
             <div>
-              <span className="font-semibold text-sm tracking-tight">Clasificador de Contenido Técnico</span>
+              <span className="font-semibold text-sm tracking-tight">Organización Inteligente del Conocimiento Técnico</span>
               <span className="hidden sm:block text-xs" style={{ color: 'var(--muted-foreground)', lineHeight: 1 }}>
                 Organiza tu conocimiento con IA
               </span>
             </div>
           </button>
           <div className="flex items-center gap-3">
+                      <button
+                        onClick={onViewContents}
+                        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+                        style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+                      >
+                        Contenidos
+                      </button>
             <button
-  onClick={onGoHome}
-  className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
-  style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-  onMouseEnter={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = '#ef4444'
-    ;(e.currentTarget as HTMLElement).style.color = '#ef4444'
-  }}
-  onMouseLeave={e => {
-    (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
-    ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
-  }}
->
-  <IconLogout />
-  Cerrar sesión
-</button>
+              onClick={onLogout}
+              className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#ef4444'
+                e.currentTarget.style.color = '#ef4444'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--border)'
+                e.currentTarget.style.color = 'var(--muted-foreground)'
+              }}
+            >
+              <IconLogout />
+              Cerrar sesión
+            </button>
+
             <button onClick={onToggleDark}
               className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors hover:opacity-80"
               style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
@@ -371,7 +364,7 @@ const confidence = result
            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
               Bienvenido, {" "}
               <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {user.name.toUpperCase()}
+                {user?.name.toUpperCase() ?? 'INVITADO'}
               </span>
             </h1>
 
@@ -387,7 +380,7 @@ const confidence = result
           style={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="space-y-1.5">
             <label className="text-sm font-medium" htmlFor="title">
-              Título <span style={{ color: 'var(--muted-foreground)', fontWeight: 400 }}>(opcional)</span>
+              Título <span style={{ color: 'var(--muted-foreground)', fontWeight: 400 }}>(requerido)</span>
             </label>
             <input id="title" type="text" value={title} onChange={e => setTitle(e.target.value)}
               placeholder="Ej: Introducción a Kubernetes y contenedores"
@@ -446,53 +439,43 @@ const confidence = result
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-base font-semibold"
                       style={{ backgroundColor: catConfig.pastelBg, color: '#0f1117' }}>
                       <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: catConfig.dotColor }} />
-             {mappedCategory}
+                      {result.category}
                     </div>
                   </div>
-
-               <div className="grid grid-cols-3 gap-4 pt-2">
-                 <div>
-                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
-                   >
-                     ID
-                   </p>
-
-                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                   >
-                     {result.id}
-                   </p>
-                 </div>
-                 <div>
-                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
-                   >
-                     Probabilidad
-                   </p>
-                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                   >
-                     {confidence}%
-                   </p>
-                 </div>
-                 <div>
-                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}
-                   >
-                     Fecha
-                   </p>
-
-                   <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                   >
-                     {new Date(result.fecha).toLocaleString()}
-                   </p>
-                 </div>
-               </div>
-
-
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--muted-foreground)' }}>Subcategorías</p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.subcategories.length > 0 ? result.subcategories.map(s => (
+                        <span key={s} className="text-xs px-2.5 py-1 rounded-lg border"
+                          style={{ borderColor: 'var(--border)', color: 'var(--secondary-foreground)', backgroundColor: 'var(--secondary)' }}>
+                          {s}
+                        </span>
+                      )) : (
+                        <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                          Sin subcategorías informadas
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    {[
+                      { label: 'Modelo', value: result.model },
+                      { label: 'Tokens', value: result.tokens_analyzed.toLocaleString() },
+                      { label: 'Latencia', value: `${result.processing_time_ms}ms` },
+                    ].map(stat => (
+                      <div key={stat.label}>
+                        <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{stat.label}</p>
+                        <p className="text-sm font-medium mt-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{stat.value}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                  <ConfidenceRing value={confidence} color={catConfig.glow} />
+                  <ConfidenceRing value={result.confidence} color={catConfig.glow} />
                   <div className="w-24">
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--muted)' }}>
                       <div className="h-full rounded-full transition-all duration-1000"
-                        style={{ width: `${confidence}%`, backgroundColor: catConfig.glow, transitionDelay: '300ms' }} />
+                        style={{ width: `${result.confidence}%`, backgroundColor: catConfig.glow, transitionDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
@@ -509,7 +492,7 @@ const confidence = result
                     <span className="w-3 h-3 rounded-full bg-green-500/80" />
                   </div>
                   <span className="text-xs" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
-                    POST /api/classify → 200 OK
+                    POST /api/contenido/clasificar → 201 Created
                   </span>
                 </div>
                 <button onClick={handleCopy} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors"

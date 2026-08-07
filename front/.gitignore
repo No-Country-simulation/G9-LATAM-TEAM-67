@@ -2,3 +2,5 @@
 dist/
 .vite/
 .vite-temp/
+.env
+.env.*

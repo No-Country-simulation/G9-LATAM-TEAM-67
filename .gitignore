@@ -1,3 +1,4 @@
+### Java / Maven ###
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
@@ -14,7 +15,7 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -22,7 +23,6 @@ target/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
-/dist/
 /nbdist/
 /.nb-gradle/
 build/
@@ -32,8 +32,19 @@ build/
 ### VS Code ###
 .vscode/
 
-### Wallet
-wallet/
+### Frontend (Node / Vite) ###
+node_modules/
+dist/
+.vite/
+.vite-temp/
+
+### Variables de entorno y secretos ###
 .env
 .env.*
-!.env.example
+
+### Oracle Wallet ###
+wallet/
+
+### Sistema operativo ###
+.DS_Store
+Thumbs.db

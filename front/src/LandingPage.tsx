@@ -3,7 +3,7 @@ import { login } from "./services/authService"
 import { register } from "./services/authService";
 import ComingSoonModal from "./components/ComingSoonModal.tsx"
 
-import { useState, useEffect, useRef, UseEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useUser } from './UserContext' // ajusta la ruta según dónde esté tu archivo
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
@@ -674,7 +674,7 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
 
       <main className="relative max-w-6xl mx-auto px-5">
         {/* ── Hero ── */}
-        <section className="py-20 sm:py-28">
+        <section className="py-20 sm:py-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-full border"
@@ -697,22 +697,22 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
                 Clasifica, organiza y encuentra tu contenido técnico de forma automática usando Machine Learning. Detecta categorías y niveles de confianza en segundos.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button onClick={() => setModal('register')}
-                  className="flex items-center justify-center gap-2 h-12 px-8 rounded-xl font-semibold text-base transition-all active:scale-95"
-                  style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', color: '#fff',
-                    boxShadow: '0 6px 20px color-mix(in srgb, var(--primary) 35%, transparent)' }}>
-                  Registrate →
-                </button>
-                <button
-                  onClick={() => setShowComingSoon(true)}
-                  className="flex items-center justify-center h-12 px-8 rounded-xl font-medium text-base border transition-all"
-                  style={{ borderColor: 'var(--border)', color: 'var(--foreground)', backgroundColor: 'var(--card)' }}
-                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'color-mix(in srgb, var(--primary) 40%, transparent)'}
-                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}>
-                  Prueba sin cuenta
-                </button>
-              </div>
+{/*             <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                 <button onClick={() => setModal('register')}
+                   className="flex items-center justify-center gap-2 h-12 px-8 rounded-xl font-semibold text-base transition-all active:scale-95"
+                   style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)', color: '#fff',
+                     boxShadow: '0 6px 20px color-mix(in srgb, var(--primary) 35%, transparent)' }}>
+                   Registrate →
+                 </button>
+                 <button
+                   onClick={() => setShowComingSoon(true)}
+                   className="flex items-center justify-center h-12 px-8 rounded-xl font-medium text-base border transition-all"
+                   style={{ borderColor: 'var(--border)', color: 'var(--foreground)', backgroundColor: 'var(--card)' }}
+                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'color-mix(in srgb, var(--primary) 40%, transparent)'}
+                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'}>
+                   Prueba sin cuenta
+                 </button>
+               </div>*/}
 
               {/* Social proof strip */}
               <div className="flex items-center gap-4 pt-4">
@@ -741,6 +741,38 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
             </div>
           </div>
         </section>
+
+                {/* ── CTA Banner ── */}
+                <section className="pb-10">
+                  <div className="relative overflow-hidden rounded-3xl p-10 sm:p-14 text-center"
+                    style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+                    {/* Decorative circles */}
+                    <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full opacity-20"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}/>
+                    <div className="absolute -bottom-12 -right-8 w-56 h-56 rounded-full opacity-10"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}/>
+                    <div className="relative z-10 space-y-4">
+                      <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+                        ¿Listo para clasificar tu conocimiento?
+                      </h2>
+                      <p className="text-base text-white/75 max-w-lg mx-auto">
+                        Prueba el clasificador con tus propios textos técnicos ahora mismo, crea tu propia cuenta para una experiencia más personalizada.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                        <button onClick={() => setModal('register')}
+                          className="h-12 px-8 rounded-xl font-semibold text-base transition-all active:scale-95"
+                          style={{ backgroundColor: 'white', color: '#4f46e5' }}>
+                          Registrate
+                        </button>
+                        <button onClick={() => setShowComingSoon(true)}
+                          className="h-12 px-8 rounded-xl font-medium text-base border border-white/30 text-white transition-all hover:bg-white/10">
+                          Probar sin cuenta
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
 
         {/* ── Stats strip ── */}
         <section className="border-t border-b py-8 mb-20"
@@ -812,36 +844,6 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
           </div>
         </section>
 
-        {/* ── CTA Banner ── */}
-        <section className="pb-24">
-          <div className="relative overflow-hidden rounded-3xl p-10 sm:p-14 text-center"
-            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
-            {/* Decorative circles */}
-            <div className="absolute -top-10 -left-10 w-48 h-48 rounded-full opacity-20"
-              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}/>
-            <div className="absolute -bottom-12 -right-8 w-56 h-56 rounded-full opacity-10"
-              style={{ backgroundColor: 'rgba(255,255,255,0.3)' }}/>
-            <div className="relative z-10 space-y-4">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-                ¿Listo para clasificar tu conocimiento?
-              </h2>
-              <p className="text-base text-white/75 max-w-lg mx-auto">
-                Prueba el clasificador con tus propios textos técnicos ahora mismo, o crea tu propia cuenta para una experiencia más personalizada.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                <button onClick={() => setModal('register')}
-                  className="h-12 px-8 rounded-xl font-semibold text-base transition-all active:scale-95"
-                  style={{ backgroundColor: 'white', color: '#4f46e5' }}>
-                  Registrate
-                </button>
-                <button onClick={onEnterApp}
-                  className="h-12 px-8 rounded-xl font-medium text-base border border-white/30 text-white transition-all hover:bg-white/10">
-                  Probar sin cuenta
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* ── Footer ── */}

@@ -42,12 +42,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = authorizationHeader.replace("Bearer ", "");
+        String token = authorizationHeader.substring(7);
         if (tokenService.isValid(token)) {
             String email = tokenService.getSubject(token);
             var user = userRepository.findByEmail(email).orElse(null);
 
-            if (user != null) {
+            if (user != null && Boolean.TRUE.equals(user.getActive())) {
 
                 var authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
