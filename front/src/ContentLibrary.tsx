@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useUser } from './UserContext'
+import {IconBrain} from './LandingPage.tsx'
 import {
   ContentServiceError,
   getAllContents,
@@ -112,12 +113,12 @@ export default function ContentLibrary({
         }}
       >
         <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
-          <button onClick={onGoHome} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <button className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold shadow-sm"
               style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
             >
-              T
+               <IconBrain size={18} />
             </div>
             <div className="text-left">
               <span className="block font-semibold text-sm tracking-tight">Biblioteca de contenidos</span>
