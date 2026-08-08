@@ -213,23 +213,33 @@ DataScience/
 #  Ejemplo de uso
 
 ```python
-import joblib
-
-modelo = joblib.load("pipeline_clasificador.joblib")
-
 texto = [
-    "Curso de Java y Spring Boot para crear APIs REST"
+
+  """Título: "Administración y Optimización de Bases de Datos Relacionales En este curso se estudian los fundamentos del diseño y administración de bases de datos relacionales utilizando PostgreSQL, MySQL y Oracle Database. El contenido aborda la creación de tablas, definición de claves primarias y foráneas, restricciones de integridad, normalización de datos y modelado entidad-relación para garantizar estructuras eficientes y consistentes. Posteriormente se desarrollan consultas SQL de diferente complejidad utilizando sentencias SELECT, WHERE, GROUP BY, HAVING y ORDER BY para filtrar y organizar la información almacenada. También se profundiza en el uso de INNER JOIN, LEFT JOIN y RIGHT JOIN para relacionar múltiples tablas y obtener información consolidada de diferentes fuentes. El curso incluye la creación de índices para optimizar el rendimiento de las consultas, el uso de vistas para simplificar el acceso a la información y procedimientos almacenados para automatizar procesos repetitivos dentro del sistema gestor de bases de datos. Además, se trabajan conceptos relacionados con transacciones, propiedades ACID, control de concurrencia, bloqueo de registros y recuperación ante fallos para garantizar la integridad de la información en ambientes con múltiples usuarios. Finalmente, se realizan ejercicios de optimización de consultas mediante el análisis de planes de ejecución, ajuste de índices y monitoreo del rendimiento utilizando herramientas propias de Oracle Database y PostgreSQL"""
+
 ]
-
 prediccion = modelo.predict(texto)
+probabilidades = modelo.predict_proba(texto)
 
+print("Categoría predicha:", prediccion[0])
+print("\nProbabilidades:")
+
+for categoria, prob in zip(modelo.classes_, probabilidades[0]):
+    print(f"{categoria}: {prob:.2%}")
 print(prediccion)
 ```
 
 ### Resultado esperado
 
 ```text
-['Backend']
+Categoría predicha: basesdedatos
+
+Probabilidades:
+backend: 3.83%
+basesdedatos: 87.16%
+cloud: 3.15%
+frontend: 2.62%
+ia: 3.24%
 ```
 
 ---
