@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import LandingPage from './LandingPage'
 import Classifier from './Classifier'
 import ContentLibrary from './ContentLibrary'
+// ===== NUEVO: Componente de gestión de usuarios =====
+import UserManagement from './UserManagement'
 import { useUser } from './UserContext'
 
-type Page = 'landing' | 'classifier' | 'contents'
+// ===== CAMBIO: Se agrega 'admin' como página posible =====
+type Page = 'landing' | 'classifier' | 'contents' | 'admin'
 
 export default function App() {
   const [dark, setDark] = useState(false)
@@ -41,12 +44,14 @@ export default function App() {
             onToggleDark={() => setDark(d => !d)}
             onGoHome={() => setPage('landing')}
             onViewContents={() => setPage('contents')}
+            // ===== NUEVO: Ir a gestión de usuarios =====
+            onGoAdmin={() => setPage('admin')}
             onLogout={() => {
               setUser(null)
               setPage('landing')
             }}
           />
-        ) : (
+        ) : page === 'contents' ? (
           <ContentLibrary
             dark={dark}
             onToggleDark={() => setDark(d => !d)}
@@ -56,6 +61,11 @@ export default function App() {
               setUser(null)
               setPage('landing')
             }}
+          />
+        ) : (
+          // ===== NUEVO: Página de administración de usuarios =====
+          <UserManagement
+            onGoBack={() => setPage('classifier')}
           />
         )}
       </div>

@@ -110,6 +110,12 @@ const IconLogout = () => (
   </svg>
 )
 
+const IconShieldAdmin = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+)
+
 const IconZap = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
@@ -187,9 +193,10 @@ interface ClassifierProps {
   onGoHome: () => void
   onViewContents: () => void
   onLogout: () => void
+  onGoAdmin: () => void
 }
 
-export default function Classifier({ dark, onToggleDark, onGoHome, onViewContents, onLogout }: ClassifierProps) {
+export default function Classifier({ dark, onToggleDark, onGoHome, onViewContents, onLogout, onGoAdmin}: ClassifierProps) {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
@@ -319,6 +326,30 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
               </span>
             </div>
           </button>
+
+          {/*USUARIOS VAL */}
+                    <div className="flex items-center gap-3">
+                      {user?.role === 'ADMIN' && (
+                        <button
+                          onClick={onGoAdmin}
+                          className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+                          style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+                          onMouseEnter={e => {
+                            (e.currentTarget as HTMLElement).style.borderColor = 'color-mix(in srgb, var(--primary) 50%, transparent)'
+                            ;(e.currentTarget as HTMLElement).style.color = 'var(--primary)'
+                          }}
+                          onMouseLeave={e => {
+                            (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+                            ;(e.currentTarget as HTMLElement).style.color = 'var(--muted-foreground)'
+                          }}
+                        >
+                          <IconShieldAdmin />
+                          Gestión de usuarios
+                        </button>
+                      )}
+                    </div>
+          {/*USUARIOS VAL */}
+
           <div className="flex items-center gap-3">
                       <button
                         onClick={onViewContents}
