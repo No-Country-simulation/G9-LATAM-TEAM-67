@@ -1,0 +1,13 @@
+{
+    "modelo": "Logistic Regression",
+    "version": "1.1",
+    "accuracy_cv": 0.9964,
+    "accuracy_test": 0.9981,
+    "categorias": [
+        "backend",
+        "frontend",
+        "basesdedatos",
+        "cloud",
+        "ia"
+    ]
+}
