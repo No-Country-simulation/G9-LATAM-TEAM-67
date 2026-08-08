@@ -295,7 +295,7 @@ export default function UserManagement({ onGoBack }: { onGoBack: () => void }) {
                 <BrainCircuit size={16} className="text-white" />
               </div>
               <span className="font-semibold text-sm tracking-tight truncate hidden sm:block">
-                Clasificador Técnico
+                Clasificador Técnico - Gentión de Usuarios
               </span>
               <span className="hidden sm:block text-border">|</span>
               <span

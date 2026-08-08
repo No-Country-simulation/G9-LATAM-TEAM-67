@@ -326,9 +326,15 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
               </span>
             </div>
           </button>
+       <div className="flex items-center gap-3">
+            <button onClick={onToggleDark}
+                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors hover:opacity-80"
+                style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+                aria-label="Toggle dark mode">
+                {dark ? <IconSun /> : <IconMoon />}
+            </button>
 
-          {/*USUARIOS VAL */}
-                    <div className="flex items-center gap-3">
+          {/*USUARIOS VAL DE AQUÍ  */}
                       {user?.role === 'ADMIN' && (
                         <button
                           onClick={onGoAdmin}
@@ -347,17 +353,15 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
                           Gestión de usuarios
                         </button>
                       )}
-                    </div>
-          {/*USUARIOS VAL */}
+          {/*USUARIOS VAL HASTA AQUÍ */}
 
-          <div className="flex items-center gap-3">
-                      <button
-                        onClick={onViewContents}
-                        className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
-                        style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-                      >
-                        Contenidos
-                      </button>
+            <button
+              onClick={onViewContents}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
+              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
+            >
+              Contenidos
+            </button>
             <button
               onClick={onLogout}
               className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all hover:shadow-sm"
@@ -373,13 +377,6 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
             >
               <IconLogout />
               Cerrar sesión
-            </button>
-
-            <button onClick={onToggleDark}
-              className="w-8 h-8 rounded-lg flex items-center justify-center border transition-colors hover:opacity-80"
-              style={{ borderColor: 'var(--border)', color: 'var(--muted-foreground)' }}
-              aria-label="Toggle dark mode">
-              {dark ? <IconSun /> : <IconMoon />}
             </button>
           </div>
         </div>
