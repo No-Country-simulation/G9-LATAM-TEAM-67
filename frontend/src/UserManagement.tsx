@@ -4,6 +4,7 @@ import {
   ChevronLeft, ChevronRight, X, AlertTriangle, BrainCircuit, Loader2,
 } from "lucide-react";
 import { useUser } from './UserContext'
+import { API_URL } from "./config/api";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -194,7 +195,7 @@ export default function UserManagement({ onGoBack }: { onGoBack: () => void }) {
       setLoadingUsers(true);
       setLoadError(null);
       try {
-        const response = await fetch('http://localhost:8080/users', {
+        const response = await fetch(`${API_URL}/users`, {
           headers: {
             'Authorization': `Bearer ${currentUser?.token}`,
           },

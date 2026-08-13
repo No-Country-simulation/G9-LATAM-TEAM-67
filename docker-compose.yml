@@ -1,0 +1,44 @@
+services:
+
+  classifier:
+    build:
+      context: .
+      dockerfile: python-api/Dockerfile
+    container_name: techmind-classifier
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: techmind-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      APP_CLASSIFIER_API_URL: http://classifier:8000/predict
+      APP_DB_URL: jdbc:oracle:thin:@hackathondb_medium
+      APP_DB_USERNAME: ${APP_DB_USERNAME}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+      APP_JWT_SECRET: ${APP_JWT_SECRET}
+      APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-7200000}
+      TNS_ADMIN: /opt/oracle/wallet
+    volumes:
+      - ~/oracle-wallet:/opt/oracle/wallet:ro
+    depends_on:
+      - classifier
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+    container_name: techmind-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
