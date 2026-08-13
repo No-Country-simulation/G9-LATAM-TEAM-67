@@ -594,3 +594,5 @@ export default function UserManagement({ onGoBack }: { onGoBack: () => void }) {
     </div>
   );
 }
+
+// Prueba GitHub Actions
