@@ -314,7 +314,11 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
         style={{ backgroundColor: 'color-mix(in srgb, var(--background) 85%, transparent)', borderColor: 'var(--border)' }}
       >
         <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <button className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+          <button
+            type="button"
+            onClick={onGoHome}
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm"
               style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
               <IconBrain />
