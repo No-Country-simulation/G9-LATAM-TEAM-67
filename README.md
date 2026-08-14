@@ -47,7 +47,7 @@ El backend es la única capa que se comunica con Oracle y con el modelo. El nave
 2. React conserva la respuesta de sesión en `localStorage` bajo la clave `user`.
 3. El formulario llama a `POST /api/contenido/clasificar` con `Authorization: Bearer <token>`.
 4. Spring Security valida el JWT y carga el usuario activo por correo.
-5. Spring concatena `titulo + " " + texto` y envía `{"texto":"..."}` a `CLASSIFIER_API_URL`.
+5. Spring concatena `titulo + " " + texto` y envía `{"texto":"..."}` a `APP_CLASSIFIER_API_URL`.
 6. La respuesta debe contener `category` no vacío y `probability` entre `0` y `1`.
 7. Solo después de validar el modelo se guarda `contenido` con el usuario autenticado.
 8. Spring devuelve `201 Created` y React muestra categoría y confianza.
@@ -74,7 +74,7 @@ Si el modelo falla, el contenido no se guarda. Los timeouts o problemas de conex
 - Vite 8.
 - Tailwind CSS 4 mediante `@tailwindcss/vite`.
 
-Las versiones proceden de `backend/pom.xml` y `front/package.json`.
+Las versiones proceden de `backend/pom.xml` y `frontend/package.json`.
 
 ## 8. Estructura del repositorio
 
@@ -92,7 +92,7 @@ Las versiones proceden de `backend/pom.xml` y `front/package.json`.
 │   │   ├── application.properties
 │   │   └── db/migration/             # V1 y V2 de Flyway
 │   └── src/test/                     # Suite automatizada backend
-├── front/
+├── frontend/
 │   ├── src/
 │   │   ├── services/                 # Llamadas HTTP
 │   │   ├── UserContext.tsx           # Sesión del navegador
@@ -119,12 +119,12 @@ No es necesario instalar Maven globalmente: el repositorio incluye `mvnw` y `mvn
 No copies secretos al repositorio. Configúralos en la terminal, en el gestor de secretos del entorno o en la configuración de ejecución del IDE.
 
 ```env
-DB_URL=
-DB_USERNAME=
-DB_PASSWORD=
-JWT_SECRET=
-JWT_EXPIRATION=7200000
-CLASSIFIER_API_URL=
+APP_DB_URL=
+APP_DB_USERNAME=
+APP_DB_PASSWORD=
+APP_JWT_SECRET=
+APP_JWT_EXPIRATION=7200000
+APP_CLASSIFIER_API_URL=
 CLASSIFIER_CONNECT_TIMEOUT=3000
 CLASSIFIER_READ_TIMEOUT=10000
 VITE_API_URL=http://localhost:8080
@@ -132,34 +132,34 @@ VITE_API_URL=http://localhost:8080
 
 | Variable | Componente | Descripción |
 |---|---|---|
-| `DB_URL` | Backend | URL JDBC completa de Oracle. |
-| `DB_USERNAME` | Backend | Usuario de Oracle. |
-| `DB_PASSWORD` | Backend | Contraseña de Oracle. |
-| `JWT_SECRET` | Backend | Secreto obligatorio para HMAC256; usa un valor largo, aleatorio y privado. |
-| `JWT_EXPIRATION` | Backend | Duración del JWT en milisegundos; por defecto `7200000` (2 horas). |
-| `CLASSIFIER_API_URL` | Backend | URL completa del endpoint del modelo, incluida la ruta `/predict`. |
+| `APP_DB_URL` | Backend | URL JDBC completa de Oracle. |
+| `APP_DB_USERNAME` | Backend | Usuario de Oracle. |
+| `APP_DB_PASSWORD` | Backend | Contraseña de Oracle. |
+| `APP_JWT_SECRET` | Backend | Secreto obligatorio para HMAC256; usa un valor largo, aleatorio y privado. |
+| `APP_JWT_EXPIRATION` | Backend | Duración del JWT en milisegundos; por defecto `7200000` (2 horas). |
+| `APP_CLASSIFIER_API_URL` | Backend | URL completa del endpoint del modelo, incluida la ruta `/predict`. |
 | `CLASSIFIER_CONNECT_TIMEOUT` | Backend | Timeout de conexión en milisegundos; por defecto `3000`. |
 | `CLASSIFIER_READ_TIMEOUT` | Backend | Timeout de respuesta en milisegundos; por defecto `10000`. |
 | `VITE_API_URL` | Frontend | URL base de Spring Boot, sin la ruta del endpoint. |
 | `TNS_ADMIN` | Backend, opcional | Directorio del wallet/configuración de red de Oracle. |
 
-Hay plantillas seguras en `backend/.env.example` y `front/.env.example`. Spring y Vite no cargan automáticamente el archivo de ejemplo.
+Hay plantillas seguras en `backend/.env.example` y `frontend/.env.example`. Spring y Vite no cargan automáticamente el archivo de ejemplo.
 
 Ejemplo para una sesión de PowerShell, usando valores propios:
 
 ```powershell
-$env:DB_URL="jdbc:oracle:thin:@..."
-$env:DB_USERNAME="..."
-$env:DB_PASSWORD="..."
-$env:JWT_SECRET="..."
-$env:JWT_EXPIRATION="7200000"
-$env:CLASSIFIER_API_URL="http://classifier-host:8000/predict"
+$env:APP_DB_URL="jdbc:oracle:thin:@..."
+$env:APP_DB_USERNAME="..."
+$env:APP_DB_PASSWORD="..."
+$env:APP_JWT_SECRET="..."
+$env:APP_JWT_EXPIRATION="7200000"
+$env:APP_CLASSIFIER_API_URL="http://classifier-host:8000/predict"
 $env:VITE_API_URL="http://localhost:8080"
 ```
 
 ## 11. Configuración de Oracle
 
-La aplicación usa `oracle.jdbc.OracleDriver` y el dialecto de Oracle. Define `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` antes de arrancar.
+La aplicación usa `oracle.jdbc.OracleDriver` y el dialecto de Oracle. Define `APP_DB_URL`, `APP_DB_USERNAME` y `APP_DB_PASSWORD` antes de arrancar.
 
 Si la conexión necesita Oracle Wallet, define `TNS_ADMIN` con la ruta al directorio del wallet:
 
@@ -187,7 +187,7 @@ En pruebas, Flyway se desactiva y JPA crea un esquema H2 en memoria con modo de 
 El código y el comando de arranque de la API Python **no están incluidos** en este repositorio. Inicia el servicio desde su proyecto correspondiente y configura en Spring la URL completa:
 
 ```powershell
-$env:CLASSIFIER_API_URL="http://localhost:8000/predict"
+$env:APP_CLASSIFIER_API_URL="http://localhost:8000/predict"
 ```
 
 Contrato requerido:
@@ -230,14 +230,14 @@ cd backend
 ./mvnw spring-boot:run
 ```
 
-La API intenta escuchar en `http://localhost:8080`. El arranque falla de forma explícita si falta `JWT_SECRET`; también necesita conexión válida a Oracle para completar Flyway y la inicialización JPA.
+La API intenta escuchar en `http://localhost:8080`. El arranque falla de forma explícita si falta `APP_JWT_SECRET`; también necesita conexión válida a Oracle para completar Flyway y la inicialización JPA.
 
 ## 15. Ejecución del frontend
 
 Configura `VITE_API_URL` antes de construir o arrancar Vite:
 
 ```powershell
-cd front
+cd frontend
 $env:VITE_API_URL="http://localhost:8080"
 npm run dev
 ```
@@ -449,7 +449,7 @@ La suite cubre autenticación, validación, JWT, autorización de usuarios, clas
 No existe todavía un runner de pruebas frontend. La verificación disponible es el build de producción:
 
 ```powershell
-cd front
+cd frontend
 $env:VITE_API_URL="http://localhost:8080"
 npm run build
 ```
@@ -465,8 +465,8 @@ Para un despliegue futuro podrían evaluarse un gestor de secretos, observabilid
 ## 21. Seguridad
 
 - Las contraseñas se almacenan con BCrypt y nunca se devuelven en los DTO de respuesta.
-- Los JWT se firman con HMAC256 y un `JWT_SECRET` obligatorio sin valor predeterminado.
-- La duración predeterminada es 7 200 000 ms (2 horas) y puede cambiarse con `JWT_EXPIRATION`.
+- Los JWT se firman con HMAC256 y un `APP_JWT_SECRET` obligatorio sin valor predeterminado.
+- La duración predeterminada es 7 200 000 ms (2 horas) y puede cambiarse con `APP_JWT_EXPIRATION`.
 - Los roles persistidos son `USER` y `ADMIN`; Spring los convierte en `ROLE_USER` y `ROLE_ADMIN`.
 - Solo registro, login, Swagger y OpenAPI son públicos.
 - `/api/contenido/**` requiere `USER` o `ADMIN`.

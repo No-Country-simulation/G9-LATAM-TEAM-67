@@ -20,10 +20,10 @@ public class TokenService {
             @Value("${jwt.expiration}") long expirationMillis
     ) {
         if (secret == null || secret.isBlank()) {
-            throw new IllegalStateException("JWT_SECRET es obligatorio y no puede estar vacío");
+            throw new IllegalStateException("APP_JWT_SECRET es obligatorio y no puede estar vacío");
         }
         if (expirationMillis <= 0) {
-            throw new IllegalStateException("JWT_EXPIRATION debe ser mayor que cero");
+            throw new IllegalStateException("APP_JWT_EXPIRATION debe ser mayor que cero");
         }
         this.secret = secret;
         this.expirationMillis = expirationMillis;

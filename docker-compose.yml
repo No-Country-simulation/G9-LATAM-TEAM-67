@@ -19,11 +19,13 @@ services:
       - "8080:8080"
     environment:
       APP_CLASSIFIER_API_URL: http://classifier:8000/predict
-      APP_DB_URL: jdbc:oracle:thin:@hackathondb_medium
+      APP_DB_URL: ${APP_DB_URL}
       APP_DB_USERNAME: ${APP_DB_USERNAME}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD}
       APP_JWT_SECRET: ${APP_JWT_SECRET}
       APP_JWT_EXPIRATION: ${APP_JWT_EXPIRATION:-7200000}
+      CLASSIFIER_CONNECT_TIMEOUT: ${CLASSIFIER_CONNECT_TIMEOUT:-3000}
+      CLASSIFIER_READ_TIMEOUT: ${CLASSIFIER_READ_TIMEOUT:-10000}
       TNS_ADMIN: /opt/oracle/wallet
     volumes:
       - ~/oracle-wallet:/opt/oracle/wallet:ro
