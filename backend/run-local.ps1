@@ -2,13 +2,17 @@ $ErrorActionPreference = "Stop"
 
 $envPath = Join-Path $PSScriptRoot ".env"
 $requiredVariables = @(
-    "DB_URL",
-    "DB_USERNAME",
-    "DB_PASSWORD",
-    "JWT_SECRET",
-    "JWT_EXPIRATION",
-    "CLASSIFIER_API_URL"
+    "APP_DB_URL",
+    "APP_DB_USERNAME",
+    "APP_DB_PASSWORD",
+    "APP_JWT_SECRET",
+    "APP_JWT_EXPIRATION",
+    "APP_CLASSIFIER_API_URL"
 )
+$defaultVariables = [ordered]@{
+    "CLASSIFIER_CONNECT_TIMEOUT" = "3000"
+    "CLASSIFIER_READ_TIMEOUT" = "10000"
+}
 
 if (-not (Test-Path -LiteralPath $envPath -PathType Leaf)) {
     throw "No se encontró backend/.env. Créalo a partir de .env.example con valores locales reales."
@@ -39,6 +43,12 @@ foreach ($line in Get-Content -LiteralPath $envPath) {
     $loadedVariables.Add($name)
 }
 
+foreach ($entry in $defaultVariables.GetEnumerator()) {
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($entry.Key, "Process"))) {
+        [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value, "Process")
+    }
+}
+
 $missingVariables = @(
     $requiredVariables | Where-Object {
         [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_, "Process"))
@@ -49,11 +59,11 @@ if ($missingVariables.Count -gt 0) {
     throw "Faltan variables obligatorias en backend/.env: $($missingVariables -join ', ')"
 }
 
-if ($env:CLASSIFIER_API_URL -notmatch "/predict/?$") {
-    throw "CLASSIFIER_API_URL debe contener la ruta completa /predict."
+if ($env:APP_CLASSIFIER_API_URL -notmatch "/predict/?$") {
+    throw "APP_CLASSIFIER_API_URL debe contener la ruta completa /predict."
 }
 
-$usesTnsAlias = $env:DB_URL -match "^jdbc:oracle:thin:@(?!//)[A-Za-z0-9_.-]+$"
+$usesTnsAlias = $env:APP_DB_URL -match "^jdbc:oracle:thin:@(?!//)[A-Za-z0-9_.-]+$"
 if ($usesTnsAlias) {
     $walletPath = Join-Path $PSScriptRoot "src/main/resources/wallet"
     $tnsnamesPath = Join-Path $walletPath "tnsnames.ora"
@@ -72,8 +82,8 @@ if ($usesTnsAlias) {
     Write-Host "TNS_ADMIN configurado desde el wallet local."
 }
 
-$loadedRequiredVariables = $requiredVariables | Where-Object { $loadedVariables.Contains($_) }
-Write-Host "Variables cargadas: $($loadedRequiredVariables -join ', ')"
+$configuredVariables = @($requiredVariables) + @($defaultVariables.Keys)
+Write-Host "Variables configuradas: $($configuredVariables -join ', ')"
 Write-Host "Iniciando Spring Boot..."
 
 Push-Location $PSScriptRoot

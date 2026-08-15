@@ -34,6 +34,7 @@ build/
 
 ### Frontend (Node / Vite) ###
 node_modules/
+/.pnpm-store/
 dist/
 .vite/
 .vite-temp/
@@ -41,6 +42,7 @@ dist/
 ### Variables de entorno y secretos ###
 .env
 .env.*
+!.env.example
 
 ### Oracle Wallet ###
 wallet/
