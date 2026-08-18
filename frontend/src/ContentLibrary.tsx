@@ -125,7 +125,7 @@ export default function ContentLibrary({
                <IconBrain size={18} />
             </div>
             <div className="text-left">
-              <span className="block font-semibold text-sm tracking-tight">Biblioteca de contenidos</span>
+              <span className="block font-semibold text-sm tracking-tight">TECHMIND - Biblioteca de contenidos</span>
               <span className="hidden sm:block text-xs" style={{ color: 'var(--muted-foreground)', lineHeight: 1 }}>
                 Explora el conocimiento clasificado
               </span>

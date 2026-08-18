@@ -324,7 +324,7 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
               <IconBrain />
             </div>
             <div>
-              <span className="font-semibold text-sm tracking-tight">Organización Inteligente del Conocimiento Técnico</span>
+              <span className="font-semibold text-sm tracking-tight">TECHMIND - Organización Inteligente del Conocimiento Técnico</span>
               <span className="hidden sm:block text-xs" style={{ color: 'var(--muted-foreground)', lineHeight: 1 }}>
                 Organiza tu conocimiento con IA
               </span>
@@ -394,14 +394,14 @@ const handleExample = (ex: typeof EXAMPLES[0]) => {
             Clasificación automática con ML
           </div>
            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-1">
-              Bienvenido, {" "}
+              Hola {" "}
               <span style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {user?.name.toUpperCase() ?? 'INVITADO'}
+                {user?.name.toUpperCase() ?? 'INVITADO'},
               </span>
             </h1>
 
             <p className="text-lg sm:text-xl font-semibold">
-              Pega tu texto, obtén su categoría
+              Ingresa el contenido que deseas analizar y obtén su categorización.
             </p>
           <p className="text-base max-w-xl mx-auto" style={{ color: 'var(--muted-foreground)' }}>
             Analiza artículos, apuntes y descripciones de cursos. El modelo detecta la disciplina técnica y el nivel de confianza en segundos.

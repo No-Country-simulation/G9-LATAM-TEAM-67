@@ -287,7 +287,7 @@ interface LoginModalProps {
   onSuccess: () => void
 }
 
-function LoginModal({ onClose, onSwitchToRegister, onSuccess }: LoginModalProps) {
+export function LoginModal({ onClose, onSwitchToRegister, onSuccess }: LoginModalProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -645,7 +645,7 @@ export default function LandingPage({ dark, onToggleDark, onEnterApp }: LandingP
               style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
               <IconBrain size={18} />
             </div>
-            <span className="font-semibold text-sm tracking-tight">Organización Inteligente del Conocimiento Técnico</span>
+            <span className="font-semibold text-sm tracking-tight">TECHMIND - Organización Inteligente del Conocimiento Técnico</span>
           </div>
 
           <div className="flex items-center gap-2.5">
