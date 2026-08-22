@@ -242,6 +242,10 @@ export default function Classifier({ dark, onToggleDark, onGoHome, onViewContent
         timestamp: data.fecha,
         response: data,
       })
+         // Limpiar los campos después de una clasificación exitosa
+      setTitle('')
+      setContent('')
+
       setResultKey(k => k + 1)
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
     } catch (err) {
