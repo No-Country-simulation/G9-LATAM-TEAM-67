@@ -46,6 +46,8 @@ dist/
 
 ### Oracle Wallet ###
 wallet/
+oracle-wallet.zip
+oracle-wallet.b64
 
 ### Sistema operativo ###
 .DS_Store
